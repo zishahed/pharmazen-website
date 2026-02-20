@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum PrescriptionStatus {
+  pending
+  approved
+  rejected
+}
+
+enum OrderStatus {
+  pending
+  awaiting_prescription
+  paid
+  cancelled
+}
+
+enum PaymentStatus {
+  unpaid
+  paid
+  failed
+}
+
+enum PaymentRecordStatus {
+  initiated
+  completed
+  failed
+}
+
+model User {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role      @default(user)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  refreshTokens  RefreshToken[]
+  prescriptions  Prescription[]
+  orders         Order[]
+  cart           Cart?
+  reviewedPrescriptions Prescription[] @relation("ReviewedBy")
+
+  @@index([email])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @db.Uuid @map("user_id")
+  tokenHash String   @map("token_hash")
+  isRevoked Boolean  @default(false) @map("is_revoked")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Category {
+  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String     @unique
+  medicines Medicine[]
+
+  @@map("categories")
+}
+
+model Medicine {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String
+  description          String?
+  categoryId           String   @db.Uuid @map("category_id")
+  price                Decimal  @db.Decimal(10, 2)
+  stockQuantity        Int      @map("stock_quantity")
+  expiryDate           DateTime? @map("expiry_date") @db.Date
+  requiresPrescription Boolean  @default(false) @map("requires_prescription")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  category   Category    @relation(fields: [categoryId], references: [id])
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([categoryId])
+  @@map("medicines")
+}
+
+model Prescription {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String             @db.Uuid @map("user_id")
+  fileUrl          String             @map("file_url")
+  cloudinaryId     String             @map("cloudinary_public_id")
+  status           PrescriptionStatus @default(pending)
+  reviewedBy       String?            @db.Uuid @map("reviewed_by")
+  reviewNote       String?            @map("review_note")
+  createdAt        DateTime           @default(now()) @map("created_at")
+
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User?  @relation("ReviewedBy", fields: [reviewedBy], references: [id])
+  orders   Order[]
+
+  @@index([userId])
+  @@map("prescriptions")
+}
+
+model Cart {
+  id     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String     @unique @db.Uuid @map("user_id")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cartId     String  @db.Uuid @map("cart_id")
+  medicineId String  @db.Uuid @map("medicine_id")
+  quantity   Int
+
+  cart     Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+
+  @@unique([cartId, medicineId])
+  @@map("cart_items")
+}
+
+model Order {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String        @db.Uuid @map("user_id")
+  totalAmount    Decimal       @db.Decimal(10, 2) @map("total_amount")
+  status         OrderStatus   @default(pending)
+  paymentStatus  PaymentStatus @default(unpaid) @map("payment_status")
+  prescriptionId String?       @db.Uuid @map("prescription_id")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [id])
+  prescription Prescription? @relation(fields: [prescriptionId], references: [id])
+  items        OrderItem[]
+  payment      Payment?
+
+  @@index([userId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId         String  @db.Uuid @map("order_id")
+  medicineId      String  @db.Uuid @map("medicine_id")
+  quantity        Int
+  priceAtPurchase Decimal @db.Decimal(10, 2) @map("price_at_purchase")
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId        String              @unique @db.Uuid @map("order_id")
+  bkashPaymentId String              @unique @map("bkash_payment_id")
+  transactionId  String              @unique @map("transaction_id")
+  amount         Decimal             @db.Decimal(10, 2)
+  status         PaymentRecordStatus @default(initiated)
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([bkashPaymentId])
+  @@map("payments")
+}
