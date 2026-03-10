@@ -1,0 +1,300 @@
+.header {
+  background: white;
+  color: var(--gray-dark);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0, 74, 173, 0.15);
+  border-bottom: 4px solid var(--primary-green);
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+/* Left: Brand Name */
+.left {
+  flex-shrink: 0;
+}
+
+.brandLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.brandLink:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.logoImage {
+  height: 48px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  transition: var(--transition);
+}
+
+.logoImage:hover {
+  transform: scale(1.05);
+}
+
+.brandName {
+  margin: 0;
+  font-size: 32px;
+  font-weight: var(--font-bold);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  line-height: 1;
+}
+
+.pharma {
+  color: var(--primary-blue);
+}
+
+.zen {
+  color: var(--primary-green);
+}
+
+/* Center: Search Bar */
+.center {
+  flex: 1;
+  max-width: 600px;
+}
+
+.searchForm {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.searchInputWrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  width: 20px;
+  height: 20px;
+  color: var(--primary-blue);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 12px 16px 12px 48px;
+  border: 2px solid var(--gray-border);
+  border-radius: var(--border-radius);
+  font-size: 15px;
+  background: var(--gray-light);
+  color: var(--gray-dark);
+  transition: var(--transition);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(0, 74, 173, 0.1);
+}
+
+.searchInput::placeholder {
+  color: var(--gray-medium);
+}
+
+.searchBtn {
+  padding: 12px 16px;
+  background: var(--gradient-green);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 2px 8px rgba(126, 217, 87, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.searchBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(126, 217, 87, 0.4);
+}
+
+.searchBtn:active {
+  transform: translateY(0);
+}
+
+/* Right: User Actions */
+.right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.medicineBadge {
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
+  color: white;
+  padding: 10px 16px;
+  border-radius: var(--border-radius-xl);
+  font-size: 13px;
+  font-weight: var(--font-bold);
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(126, 217, 87, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.medicineBadge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.userBtn,
+.cartBtn,
+.actionBtn {
+  padding: 10px 14px;
+  background-color: var(--primary-blue);
+  color: white;
+  border: 2px solid var(--primary-blue);
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.userBtn svg,
+.cartBtn svg,
+.actionBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.userBtn:hover,
+.cartBtn:hover,
+.actionBtn:hover {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(126, 217, 87, 0.3);
+}
+
+.userBtn:active,
+.cartBtn:active,
+.actionBtn:active {
+  transform: translateY(0);
+}
+
+/* Mobile responsive */
+@media (max-width: 1024px) {
+  .container {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .left {
+    order: 1;
+  }
+
+  .center {
+    order: 3;
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+
+  .right {
+    order: 2;
+    flex: 1;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .brandName {
+    font-size: 28px;
+  }
+
+  .medicineBadge {
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .container {
+    padding: 12px 16px;
+  }
+
+  .brandName {
+    font-size: 22px;
+  }
+
+  .logoImage {
+    height: 40px;
+  }
+
+  .searchInput {
+    font-size: 14px;
+    padding: 10px 14px 10px 44px;
+  }
+
+  .searchIcon {
+    width: 18px;
+    height: 18px;
+    left: 14px;
+  }
+
+  .searchBtn {
+    padding: 10px 14px;
+  }
+
+  .searchBtn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .userBtn,
+  .cartBtn,
+  .actionBtn {
+    padding: 10px 12px;
+  }
+
+  .userBtn svg,
+  .cartBtn svg,
+  .actionBtn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .medicineBadge {
+    display: none;
+  }
+}

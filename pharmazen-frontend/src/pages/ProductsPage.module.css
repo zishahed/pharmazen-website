@@ -1,0 +1,246 @@
+.productsPage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #f5f7fa 0%, #e8ecf2 100%);
+}
+
+.mainContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 36px;
+  flex: 1;
+  width: 100%;
+}
+
+.productsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.resultsInfo {
+  padding: 18px 24px;
+  background: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow);
+  border-left: 4px solid var(--primary-green);
+  transition: var(--transition);
+}
+
+.resultsInfo:hover {
+  box-shadow: var(--box-shadow-lg);
+  transform: translateX(2px);
+}
+
+.resultsInfo p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--gray-dark);
+  font-weight: var(--font-medium);
+}
+
+.resultsInfo strong {
+  color: var(--primary-blue);
+  font-weight: var(--font-bold);
+  font-size: 16px;
+}
+
+.medicineGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Error State */
+.error {
+  padding: 80px 40px;
+  text-align: center;
+  background: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-lg);
+  border: 2px solid var(--danger-red);
+}
+
+.error p {
+  color: var(--danger-red);
+  font-size: 20px;
+  font-weight: var(--font-semibold);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.retryBtn {
+  padding: 14px 32px;
+  background: var(--gradient-blue);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--box-shadow);
+}
+
+.retryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-lg);
+}
+
+.retryBtn:active {
+  transform: translateY(0);
+}
+
+/* No Results State */
+.noResults {
+  padding: 100px 40px;
+  text-align: center;
+  background: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-lg);
+  border: 2px dashed var(--gray-border);
+}
+
+.noResultsText {
+  font-size: 28px;
+  font-weight: var(--font-bold);
+  color: var(--gray-dark);
+  margin: 0 0 16px 0;
+}
+
+.noResultsSubtext {
+  font-size: 16px;
+  color: var(--gray-medium);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 40px 0 20px;
+}
+
+.pageBtn {
+  padding: 14px 28px;
+  background: var(--gradient-blue);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 15px;
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--box-shadow);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-lg);
+}
+
+.pageBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pageBtn:disabled {
+  background: linear-gradient(135deg, #999 0%, #ccc 100%);
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+.pageBtn:disabled:hover {
+  transform: none;
+}
+
+.pageInfo {
+  font-size: 16px;
+  font-weight: var(--font-bold);
+  color: var(--gray-dark);
+  padding: 14px 24px;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow-sm);
+  border: 2px solid var(--gray-border);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .medicineGrid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .mainContent {
+    grid-template-columns: 280px 1fr;
+    gap: 28px;
+    padding: 32px 20px;
+  }
+
+  .medicineGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .mainContent {
+    grid-template-columns: 1fr;
+    padding: 24px 16px;
+    gap: 20px;
+  }
+
+  .medicineGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .resultsInfo {
+    padding: 14px 18px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 14px;
+    padding: 32px 0 16px;
+  }
+
+  .pageBtn {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+
+  .pageInfo {
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+  }
+
+  .noResults {
+    padding: 60px 24px;
+  }
+
+  .noResultsText {
+    font-size: 22px;
+  }
+
+  .error {
+    padding: 60px 24px;
+  }
+}

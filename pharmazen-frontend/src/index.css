@@ -1,68 +1,196 @@
+/* PharmaZen - Medical Theme Colors */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Primary Colors */
+  --primary-green: #7ed957;
+  --primary-green-dark: #6bc745;
+  --primary-green-light: #a3e884;
+  --primary-blue: #004aad;
+  --primary-blue-dark: #003a8c;
+  --primary-blue-light: #1a5ebf;
+  --white: #ffffff;
+  
+  /* Secondary Colors */
+  --gray-light: #f5f7fa;
+  --gray-medium: #6c757d;
+  --gray-dark: #2c3e50;
+  --gray-border: #e1e8ed;
+  
+  /* Status Colors */
+  --success-green: #10b981;
+  --success-bg: #d1fae5;
+  --danger-red: #ef4444;
+  --danger-bg: #fee2e2;
+  --warning-amber: #f59e0b;
+  --warning-bg: #fef3c7;
+  --info-blue: #3b82f6;
+  --info-bg: #dbeafe;
+  
+  /* Medical Theme Gradients */
+  --gradient-blue: linear-gradient(135deg, #004aad 0%, #0066cc 100%);
+  --gradient-green: linear-gradient(135deg, #7ed957 0%, #6bc745 100%);
+  --gradient-card: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  
+  /* UI Elements */
+  --border-radius-sm: 8px;
+  --border-radius: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+  --box-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --box-shadow: 0 4px 12px rgba(0, 74, 173, 0.12);
+  --box-shadow-lg: 0 8px 24px rgba(0, 74, 173, 0.15);
+  --box-shadow-hover: 0 12px 32px rgba(0, 74, 173, 0.2);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Typography */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+/* Body Styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  background: linear-gradient(180deg, #f5f7fa 0%, #e8ecf2 100%);
+  color: var(--gray-dark);
+  line-height: 1.6;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
+/* Typography */
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 32px;
+  font-weight: var(--font-bold);
+  color: var(--primary-blue);
 }
 
+h2 {
+  font-size: 24px;
+  font-weight: var(--font-bold);
+  color: var(--primary-blue);
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+  color: var(--gray-dark);
+}
+
+p {
+  font-size: 16px;
+  color: var(--gray-dark);
+}
+
+small {
+  font-size: 14px;
+  color: var(--gray-medium);
+}
+
+/* Links */
+a {
+  color: var(--primary-blue);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--primary-green);
+}
+
+/* Buttons */
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: var(--font-semibold);
+  transition: var(--transition);
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-lg);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:focus {
+  outline: 3px solid rgba(126, 217, 87, 0.4);
+  outline-offset: 2px;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Form Elements */
+input,
+select,
+textarea {
+  padding: 12px 16px;
+  border: 2px solid var(--gray-border);
+  border-radius: var(--border-radius-sm);
+  font-size: 15px;
+  font-family: inherit;
+  transition: var(--transition);
+  background-color: white;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 74, 173, 0.1);
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--primary-blue-light);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-blue);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #003a8c;
 }

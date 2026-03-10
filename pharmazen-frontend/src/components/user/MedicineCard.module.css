@@ -1,0 +1,220 @@
+.card {
+  background: var(--gradient-card);
+  border-radius: var(--border-radius-lg);
+  padding: 24px;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-green);
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--box-shadow-hover);
+  border-color: var(--primary-blue-light);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.iconWrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--border-radius);
+  background: linear-gradient(135deg, rgba(0, 74, 173, 0.1) 0%, rgba(126, 217, 87, 0.1) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dosageIcon {
+  width: 32px;
+  height: 32px;
+  color: var(--primary-blue);
+  stroke-width: 2;
+}
+
+.badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 1;
+}
+
+.inStock,
+.outOfStock,
+.prescriptionBadge {
+  padding: 6px 12px;
+  border-radius: var(--border-radius-xl);
+  font-size: 11px;
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: var(--box-shadow-sm);
+}
+
+.inStock svg,
+.outOfStock svg,
+.prescriptionBadge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.inStock {
+  background: var(--success-bg);
+  color: var(--success-green);
+  border: 1px solid var(--success-green);
+}
+
+.outOfStock {
+  background: var(--danger-bg);
+  color: var(--danger-red);
+  border: 1px solid var(--danger-red);
+}
+
+.prescriptionBadge {
+  background: var(--warning-bg);
+  color: var(--warning-amber);
+  border: 1px solid var(--warning-amber);
+}
+
+.medicineName {
+  font-size: 18px;
+  font-weight: var(--font-bold);
+  color: var(--primary-blue);
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+  min-height: 50px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.genericName {
+  font-size: 14px;
+  color: var(--gray-medium);
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+  min-height: 42px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.genericName svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.priceSection {
+  background: linear-gradient(135deg, rgba(0, 74, 173, 0.05) 0%, rgba(126, 217, 87, 0.05) 100%);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  margin: 12px 0 16px 0;
+  border: 1px solid var(--gray-border);
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.currency {
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+  color: var(--primary-blue);
+}
+
+.amount {
+  font-size: 28px;
+  font-weight: var(--font-bold);
+  color: var(--primary-blue);
+  line-height: 1;
+}
+
+.unit {
+  font-size: 13px;
+  font-weight: var(--font-medium);
+  color: var(--gray-medium);
+  text-transform: lowercase;
+}
+
+.addToCartBtn {
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--gradient-green);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 15px;
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: auto;
+  box-shadow: 0 4px 12px rgba(126, 217, 87, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.addToCartBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.addToCartBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--primary-green-dark) 0%, var(--primary-green) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(126, 217, 87, 0.35);
+}
+
+.addToCartBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.addToCartBtn:disabled {
+  background: linear-gradient(135deg, #ccc 0%, #999 100%);
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.addToCartBtn:disabled:hover {
+  transform: none;
+}
