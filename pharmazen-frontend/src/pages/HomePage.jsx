@@ -6,8 +6,9 @@ import styles from './HomePage.module.css';
 
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, isCustomer, isPharmacist, isAdmin } = useAuth();
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -21,6 +22,11 @@ const HomePage = () => {
 
   const handleBrowseProducts = () => {
     navigate('/products');
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setShowProfileMenu(false);
   };
 
   return (
@@ -37,7 +43,7 @@ const HomePage = () => {
           </div>
           
           {/* Auth Buttons for Guests */}
-          {!isAuthenticated() && (
+          {!user && (
             <div className={styles.authButtons}>
               <button onClick={() => navigate('/login')} className={styles.loginBtn}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,6 +57,161 @@ const HomePage = () => {
                 </svg>
                 Register
               </button>
+            </div>
+          )}
+
+          {/* Customer User - Cart, Upload Prescription, Profile Menu */}
+          {isCustomer() && (
+            <div className={styles.authButtons}>
+              <button onClick={() => navigate('/cart')} className={styles.cartBtn}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </button>
+
+              <button onClick={() => navigate('/upload-prescription')} className={styles.actionBtn}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </button>
+
+              <div className={styles.profileMenu}>
+                <button onClick={() => setShowProfileMenu(!showProfileMenu)} className={styles.userBtn}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </button>
+
+                {showProfileMenu && (
+                  <div className={styles.dropdown}>
+                    <div className={styles.dropdownHeader}>
+                      <p className={styles.userName}>{user.name}</p>
+                      <p className={styles.userEmail}>{user.email}</p>
+                    </div>
+                    <div className={styles.dropdownDivider}></div>
+                    <button onClick={() => { navigate('/profile'); setShowProfileMenu(false); }} className={styles.dropdownItem}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      My Profile
+                    </button>
+                    <button onClick={() => { navigate('/orders'); setShowProfileMenu(false); }} className={styles.dropdownItem}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      My Orders
+                    </button>
+                    <button onClick={() => { navigate('/prescriptions'); setShowProfileMenu(false); }} className={styles.dropdownItem}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      My Prescriptions
+                    </button>
+                    <div className={styles.dropdownDivider}></div>
+                    <button onClick={handleLogout} className={styles.dropdownItemDanger}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Pharmacist User - Review Prescriptions, Profile Menu */}
+          {isPharmacist() && (
+            <div className={styles.authButtons}>
+              <button onClick={() => navigate('/review-prescriptions')} className={styles.pharmacistBtn}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Review Prescriptions
+              </button>
+
+              <div className={styles.profileMenu}>
+                <button onClick={() => setShowProfileMenu(!showProfileMenu)} className={styles.userBtn}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </button>
+
+                {showProfileMenu && (
+                  <div className={styles.dropdown}>
+                    <div className={styles.dropdownHeader}>
+                      <p className={styles.userName}>{user.name}</p>
+                      <p className={styles.userEmail}>{user.email}</p>
+                      <span className={styles.roleBadge}>Pharmacist</span>
+                    </div>
+                    <div className={styles.dropdownDivider}></div>
+                    <button onClick={() => { navigate('/profile'); setShowProfileMenu(false); }} className={styles.dropdownItem}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      My Profile
+                    </button>
+                    <div className={styles.dropdownDivider}></div>
+                    <button onClick={handleLogout} className={styles.dropdownItemDanger}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Admin User - Medicine Count Badge, Admin Panel, Profile Menu */}
+          {isAdmin() && (
+            <div className={styles.authButtons}>
+              <button onClick={() => navigate('/admin')} className={styles.adminBtn}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Admin Panel
+              </button>
+
+              <div className={styles.profileMenu}>
+                <button onClick={() => setShowProfileMenu(!showProfileMenu)} className={styles.userBtn}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </button>
+
+                {showProfileMenu && (
+                  <div className={styles.dropdown}>
+                    <div className={styles.dropdownHeader}>
+                      <p className={styles.userName}>{user.name}</p>
+                      <p className={styles.userEmail}>{user.email}</p>
+                      <span className={styles.roleBadgeAdmin}>Admin</span>
+                    </div>
+                    <div className={styles.dropdownDivider}></div>
+                    <button onClick={() => { navigate('/profile'); setShowProfileMenu(false); }} className={styles.dropdownItem}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      My Profile
+                    </button>
+                    <button onClick={() => { navigate('/admin/register-staff'); setShowProfileMenu(false); }} className={styles.dropdownItem}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                      </svg>
+                      Register Staff
+                    </button>
+                    <div className={styles.dropdownDivider}></div>
+                    <button onClick={handleLogout} className={styles.dropdownItemDanger}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
