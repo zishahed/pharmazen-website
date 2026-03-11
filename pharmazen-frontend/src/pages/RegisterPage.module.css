@@ -1,0 +1,257 @@
+.registerPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #f5f7fa 0%, #e8ecf2 100%);
+  padding: 20px;
+}
+
+.registerContainer {
+  width: 100%;
+  max-width: 500px;
+}
+
+.registerCard {
+  background: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 74, 173, 0.15);
+  padding: 48px;
+  border-top: 4px solid var(--primary-green);
+}
+
+/* Logo Section */
+.logoSection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.logo {
+  height: 48px;
+  width: auto;
+}
+
+.brandName {
+  margin: 0;
+  font-size: 36px;
+  font-weight: var(--font-bold);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: baseline;
+  line-height: 1;
+}
+
+.pharma {
+  color: var(--primary-blue);
+}
+
+.zen {
+  color: var(--primary-green);
+}
+
+/* Title and Subtitle */
+.title {
+  font-size: 28px;
+  font-weight: var(--font-bold);
+  color: var(--primary-blue);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--gray-medium);
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+/* Error Message */
+.error {
+  background: var(--danger-bg);
+  color: var(--danger-red);
+  padding: 12px 16px;
+  border-radius: var(--border-radius-sm);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  border: 1px solid var(--danger-red);
+}
+
+.error svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  color: var(--gray-dark);
+}
+
+.formGroup input {
+  padding: 12px 16px;
+  border: 2px solid var(--gray-border);
+  border-radius: var(--border-radius-sm);
+  font-size: 15px;
+  transition: var(--transition);
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 74, 173, 0.1);
+}
+
+/* Submit Button */
+.submitBtn {
+  padding: 14px 24px;
+  background: var(--gradient-green);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-size: 16px;
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(126, 217, 87, 0.3);
+  margin-top: 8px;
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(126, 217, 87, 0.4);
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Login Link */
+.loginLink {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 15px;
+  color: var(--gray-medium);
+}
+
+.loginLink a {
+  color: var(--primary-blue);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.loginLink a:hover {
+  color: var(--primary-green);
+  text-decoration: underline;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0;
+  color: var(--gray-medium);
+  font-size: 14px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--gray-border);
+}
+
+/* Guest Button */
+.guestBtn {
+  display: block;
+  width: 100%;
+  padding: 12px 24px;
+  background: white;
+  color: var(--primary-blue);
+  border: 2px solid var(--primary-blue);
+  border-radius: var(--border-radius-sm);
+  font-size: 15px;
+  font-weight: var(--font-semibold);
+  text-align: center;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.guestBtn:hover {
+  background: var(--primary-blue);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 74, 173, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .registerCard {
+    padding: 32px 24px;
+  }
+
+  .brandName {
+    font-size: 28px;
+  }
+
+  .logo {
+    height: 40px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .registerPage {
+    padding: 12px;
+  }
+
+  .registerCard {
+    padding: 24px 20px;
+  }
+
+  .brandName {
+    font-size: 24px;
+  }
+
+  .logo {
+    height: 36px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+}

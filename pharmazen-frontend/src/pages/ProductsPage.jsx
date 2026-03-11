@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import Loader from '../components/common/Loader';
@@ -8,6 +9,9 @@ import { getMedicines, getMaxPrice, getFilterOptions, getCategories } from '../a
 import styles from './ProductsPage.module.css';
 
 const ProductsPage = () => {
+  // Get search params from URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   // State management
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,13 +28,16 @@ const ProductsPage = () => {
 
   // Applied filters
   const [filters, setFilters] = useState({});
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // User role (hardcoded for now)
-  const isAdmin = false; // Change to true to test admin view
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
 
   // Detect mobile
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
+
+  // Update search query when URL params change
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search') || '';
+    setSearchQuery(searchFromUrl);
+  }, [searchParams]);
 
   // Handle window resize
   useEffect(() => {
@@ -116,6 +123,7 @@ const ProductsPage = () => {
   // Handle search
   const handleSearch = (query) => {
     setSearchQuery(query);
+    setSearchParams(query ? { search: query } : {});
     setPage(1); // Reset to page 1 when search changes
   };
 
@@ -137,7 +145,6 @@ const ProductsPage = () => {
   return (
     <div className={styles.productsPage}>
       <Header
-        isAdmin={isAdmin}
         totalMedicines={totalMedicines}
         onSearch={handleSearch}
       />

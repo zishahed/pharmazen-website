@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const app = express();
 
 // Import routes
+const authRoutes = require('./modules/auth/auth.routes');
 const medicinesRoutes = require('./modules/medicines/medicines.routes');
 const categoriesRoutes = require('./modules/categories/categories.routes');
 
@@ -12,6 +14,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 // Health check
 app.get('/', (req, res) => {
@@ -19,6 +22,7 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/medicines', medicinesRoutes);
 app.use('/api/categories', categoriesRoutes);
 

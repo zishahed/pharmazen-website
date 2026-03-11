@@ -8,8 +8,9 @@ datasource db {
 }
 
 enum Role {
+  customer
+  pharmacist
   admin
-  user
 }
 
 enum PrescriptionStatus {
@@ -42,7 +43,7 @@ model User {
   name         String
   email        String    @unique
   passwordHash String    @map("password_hash")
-  role         Role      @default(user)
+  role         Role      @default(customer)
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
