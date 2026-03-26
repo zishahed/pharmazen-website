@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getCurrentUser, login as loginApi, logout as logoutApi, register as registerApi } from '../api/authApi';
 
 const AuthContext = createContext(null);
@@ -15,8 +15,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const loginCallbacks = useRef([]);
+  const logoutCallbacks = useRef([]);
 
-  // Check if user is already logged in on mount
   useEffect(() => {
     checkAuth();
   }, []);
@@ -27,8 +28,7 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         setUser(response.data.user);
       }
-    } catch (err) {
-      // User not authenticated
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -41,6 +41,7 @@ export const AuthProvider = ({ children }) => {
       const response = await loginApi(credentials);
       if (response.success) {
         setUser(response.data.user);
+        loginCallbacks.current.forEach(cb => cb());
         return { success: true };
       }
     } catch (err) {
@@ -55,7 +56,6 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       const response = await registerApi(userData);
       if (response.success) {
-        // Auto-login after registration
         return await login({ email: userData.email, password: userData.password });
       }
     } catch (err) {
@@ -67,6 +67,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      logoutCallbacks.current.forEach(cb => cb());
       await logoutApi();
       setUser(null);
       setError(null);
@@ -92,6 +93,20 @@ export const AuthProvider = ({ children }) => {
   const isPharmacist = () => hasRole('pharmacist');
   const isAdmin = () => hasRole('admin');
 
+  const onLogin = (callback) => {
+    loginCallbacks.current.push(callback);
+    return () => {
+      loginCallbacks.current = loginCallbacks.current.filter(cb => cb !== callback);
+    };
+  };
+
+  const onLogout = (callback) => {
+    logoutCallbacks.current.push(callback);
+    return () => {
+      logoutCallbacks.current = logoutCallbacks.current.filter(cb => cb !== callback);
+    };
+  };
+
   const value = {
     user,
     loading,
@@ -105,6 +120,8 @@ export const AuthProvider = ({ children }) => {
     isCustomer,
     isPharmacist,
     isAdmin,
+    onLogin,
+    onLogout
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

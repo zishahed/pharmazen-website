@@ -5,6 +5,41 @@
   background: linear-gradient(180deg, #f5f7fa 0%, #e8ecf2 100%);
 }
 
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+}
+
+.toast svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 .mainContent {
   max-width: 1400px;
   margin: 0 auto;

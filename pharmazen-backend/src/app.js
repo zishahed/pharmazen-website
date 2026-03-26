@@ -7,6 +7,7 @@ const app = express();
 const authRoutes = require('./modules/auth/auth.routes');
 const medicinesRoutes = require('./modules/medicines/medicines.routes');
 const categoriesRoutes = require('./modules/categories/categories.routes');
+const cartRoutes = require('./modules/cart/cart.routes');
 
 // Middleware
 app.use(cors({
@@ -25,5 +26,6 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/medicines', medicinesRoutes);
 app.use('/api/categories', categoriesRoutes);
+app.use('/api/cart', cartRoutes);
 
 module.exports = app;

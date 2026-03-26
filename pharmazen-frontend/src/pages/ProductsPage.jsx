@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import Loader from '../components/common/Loader';
 import MedicineCard from '../components/user/MedicineCard';
 import FiltersSidebar from '../components/user/FiltersSidebar';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { getMedicines, getMaxPrice, getFilterOptions, getCategories } from '../api/medicinesApi';
 import styles from './ProductsPage.module.css';
 
@@ -32,6 +34,24 @@ const ProductsPage = () => {
 
   // Detect mobile
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { addToCart, setPendingCartItem } = useCart();
+
+  const handleAddToCart = (item) => {
+    if (!isAuthenticated()) {
+      setPendingCartItem(item);
+      navigate('/login', { state: { from: { pathname: '/products' } } });
+      return;
+    }
+    addToCart(item);
+    setToastMessage(`${item.name} added to cart`);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   // Update search query when URL params change
   useEffect(() => {
@@ -149,6 +169,15 @@ const ProductsPage = () => {
         onSearch={handleSearch}
       />
 
+      {showToast && (
+        <div className={styles.toast}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          {toastMessage}
+        </div>
+      )}
+
       <div className={styles.mainContent}>
         <FiltersSidebar
           genericNames={genericNames}
@@ -187,7 +216,7 @@ const ProductsPage = () => {
 
               <div className={styles.medicineGrid}>
                 {medicines.map((medicine) => (
-                  <MedicineCard key={medicine.id} {...parseMedicineData(medicine)} />
+                  <MedicineCard key={medicine.id} {...parseMedicineData(medicine)} onAddToCart={handleAddToCart} />
                 ))}
               </div>
 

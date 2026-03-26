@@ -197,6 +197,28 @@ const getCurrentUser = async (req, res) => {
 };
 
 /**
+ * Check if user is authenticated
+ * GET /api/auth/check
+ */
+const checkAuth = async (req, res) => {
+  try {
+    const token = req.cookies?.accessToken || req.headers.authorization?.split(' ')[1];
+    if (token) {
+      const { verifyAccessToken } = require('../../utils/jwt');
+      try {
+        verifyAccessToken(token);
+        return res.json({ success: true, authenticated: true });
+      } catch {
+        return res.json({ success: true, authenticated: false });
+      }
+    }
+    res.json({ success: true, authenticated: false });
+  } catch (error) {
+    res.json({ success: true, authenticated: false });
+  }
+};
+
+/**
  * Register staff (pharmacist or admin) - admin only
  * POST /api/auth/admin/register-staff
  */
@@ -260,4 +282,5 @@ module.exports = {
   logout,
   getCurrentUser,
   registerStaff,
+  checkAuth,
 };

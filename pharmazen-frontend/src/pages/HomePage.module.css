@@ -111,10 +111,95 @@
 .actionBtn svg,
 .loginBtn svg,
 .registerBtn svg,
+.pharmacistBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  box-shadow: 0 2px 6px rgba(229, 62, 62, 0.4);
+}
+
+.cartBtn {
+  position: relative;
+}
+
+.userBtn:hover,
+.cartBtn:hover,
+.actionBtn:hover,
+.registerBtn:hover,
+.pharmacistBtn:hover,
+.adminBtn:hover {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(126, 217, 87, 0.3);
+}
+
+.userBtn:active,
+.cartBtn:active,
+.actionBtn:active,
+.loginBtn:active,
+.registerBtn:active,
+.pharmacistBtn:active,
+.adminBtn:active {
+  transform: translateY(0);
+}
+
+.userBtn svg,
+.cartBtn svg,
+.actionBtn svg,
+.loginBtn svg,
+.registerBtn svg,
 .pharmacistBtn svg,
 .adminBtn svg {
   width: 20px;
   height: 20px;
+}
+
+.loginBtn:hover {
+  background: var(--primary-blue);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 74, 173, 0.3);
+}
+
+.userBtn:hover,
+.cartBtn:hover,
+.actionBtn:hover,
+.registerBtn:hover,
+.pharmacistBtn:hover,
+.adminBtn:hover {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(126, 217, 87, 0.3);
+}
+
+.userBtn:active,
+.cartBtn:active,
+.actionBtn:active,
+.loginBtn:active,
+.registerBtn:active,
+.pharmacistBtn:active,
+.adminBtn:active {
+  transform: translateY(0);
 }
 
 .loginBtn:hover {
