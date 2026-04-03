@@ -8,6 +8,8 @@ const authRoutes = require('./modules/auth/auth.routes');
 const medicinesRoutes = require('./modules/medicines/medicines.routes');
 const categoriesRoutes = require('./modules/categories/categories.routes');
 const cartRoutes = require('./modules/cart/cart.routes');
+const ordersRoutes = require('./modules/orders/orders.routes');
+const paymentsRoutes = require('./modules/payments/payments.routes');
 
 // Middleware
 app.use(cors({
@@ -27,5 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/medicines', medicinesRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 module.exports = app;

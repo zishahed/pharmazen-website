@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import styles from './CartPage.module.css';
@@ -7,6 +8,7 @@ import styles from './CartPage.module.css';
 const CartPage = () => {
   const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, getCartCount, isLoading } = useCart();
+  const { isAuthenticated } = useAuth();
   const cartTotal = getCartTotal();
   const cartCount = getCartCount();
 
@@ -47,6 +49,14 @@ const CartPage = () => {
       if (form.includes(key)) return value;
     }
     return 'per unit';
+  };
+
+  const handleCheckout = async () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: '/cart' } });
+      return;
+    }
+    navigate('/checkout');
   };
 
   if (cartItems.length === 0) {
@@ -154,7 +164,13 @@ const CartPage = () => {
               <span>Total</span>
               <span>৳{cartTotal.toFixed(2)}</span>
             </div>
-            <button className={styles.checkoutBtn}>
+            <button
+              onClick={handleCheckout}
+              className={styles.checkoutBtn}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '18px', height: '18px' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
               Proceed to Checkout
             </button>
             <button onClick={() => navigate('/products')} className={styles.continueShoppingBtn}>

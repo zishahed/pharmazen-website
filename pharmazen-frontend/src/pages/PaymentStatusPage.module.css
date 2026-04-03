@@ -1,0 +1,173 @@
+.statusPage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f7fafc;
+}
+
+.statusContainer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.successCard,
+.failedCard {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 48px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.iconWrapper svg {
+  width: 40px;
+  height: 40px;
+  color: white;
+}
+
+.iconWrapperFailed {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.iconWrapperFailed svg {
+  width: 40px;
+  height: 40px;
+  color: white;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #718096;
+  margin: 0 0 32px;
+}
+
+.detailsCard {
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.detailRow:not(:last-child) {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.detailLabel {
+  font-size: 14px;
+  color: #718096;
+}
+
+.detailValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+  font-family: monospace;
+}
+
+.message {
+  font-size: 15px;
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0 0 32px;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.primaryBtn {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.secondaryBtn {
+  width: 100%;
+  padding: 16px 24px;
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.secondaryBtn:hover {
+  background: #f7fafc;
+}
+
+@media (max-width: 600px) {
+  .successCard,
+  .failedCard {
+    padding: 32px 24px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .iconWrapper,
+  .iconWrapperFailed {
+    width: 64px;
+    height: 64px;
+  }
+
+  .iconWrapper svg,
+  .iconWrapperFailed svg {
+    width: 32px;
+    height: 32px;
+  }
+}
