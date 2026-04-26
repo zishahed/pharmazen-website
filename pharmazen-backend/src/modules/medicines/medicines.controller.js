@@ -74,8 +74,31 @@ async function getFilterOptions(req, res) {
   }
 }
 
+/**
+ * GET /api/medicines/restricted
+ * Get medicines that require prescription
+ */
+async function getRestrictedMedicines(req, res) {
+  try {
+    const search = req.query.search || '';
+    const medicines = await medicinesService.getRestrictedMedicines(search);
+
+    res.json({
+      success: true,
+      data: medicines,
+    });
+  } catch (error) {
+    console.error('Error in getRestrictedMedicines controller:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch restricted medicines.',
+    });
+  }
+}
+
 module.exports = {
   getMedicines,
   getMaxPrice,
   getFilterOptions,
+  getRestrictedMedicines,
 };
