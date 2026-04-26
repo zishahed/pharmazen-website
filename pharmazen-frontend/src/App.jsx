@@ -12,6 +12,7 @@ import UnauthorizedPage from './pages/UnauthorizedPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PaymentStatusPage from './pages/PaymentStatusPage';
+import PrescriptionUploadPage from './pages/PrescriptionUploadPage';
 
 function App() {
   return (
@@ -29,6 +30,16 @@ function App() {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment/success" element={<PaymentStatusPage />} />
             <Route path="/payment/failed" element={<PaymentStatusPage />} />
+            
+            {/* Customer-only routes */}
+            <Route 
+              path="/upload-prescription" 
+              element={
+                <ProtectedRoute allowedRoles={['customer']}>
+                  <PrescriptionUploadPage />
+                </ProtectedRoute>
+              } 
+            />
             
             {/* Admin-only routes */}
             <Route 
