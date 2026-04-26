@@ -147,8 +147,42 @@ async function getFilterOptions() {
   }
 }
 
+/**
+ * Get medicines that require prescription (restricted medicines)
+ * @param {String} search - Optional search filter
+ * @returns {Array} - Array of restricted medicines
+ */
+async function getRestrictedMedicines(search) {
+  try {
+    const where = {
+      requiresPrescription: true,
+    };
+
+    if (search) {
+      where.name = { contains: search, mode: 'insensitive' };
+    }
+
+    const medicines = await prisma.medicine.findMany({
+      where,
+      include: {
+        category: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+      take: 50,
+    });
+
+    return medicines;
+  } catch (error) {
+    console.error('Error fetching restricted medicines:', error);
+    throw new Error('Failed to fetch restricted medicines');
+  }
+}
+
 module.exports = {
   getMedicines,
   getMaxPrice,
   getFilterOptions,
+  getRestrictedMedicines,
 };
