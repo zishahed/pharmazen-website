@@ -32,3 +32,12 @@ export const getFilterOptions = () => {
 export const getCategories = () => {
   return axiosClient.get('/categories');
 };
+
+/**
+ * Get medicines that require prescription (restricted)
+ * @param {String} search - Optional search filter
+ * @returns {Promise} - Axios response
+ */
+export const getRestrictedMedicines = (search) => {
+  return axiosClient.get('/medicines/restricted', { params: { search } });
+};
