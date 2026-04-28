@@ -204,11 +204,21 @@ export const CartProvider = ({ children }) => {
 
   const onLoginSuccess = useCallback(async () => {
     const localItems = JSON.parse(localStorage.getItem('pharmazen_cart') || '[]');
+    
+    if (pendingItem) {
+      const itemToAdd = { ...pendingItem, id: pendingItem.id };
+      localItems.push(itemToAdd);
+      localStorage.setItem('pharmazen_cart', JSON.stringify(localItems));
+    }
+    
     if (localItems.length > 0) {
       await syncLocalCartToBackend(localItems);
+      localStorage.removeItem('pharmazen_cart');
     }
+    
+    setPendingItem(null);
     await fetchCart();
-  }, [fetchCart]);
+  }, [fetchCart, pendingItem]);
 
   const onLogout = useCallback(async () => {
     const backendItems = [...cartItems];

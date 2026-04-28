@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
 import styles from './LoginPage.module.css';
 
 const LoginPage = () => {
@@ -11,7 +10,6 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   
   const { login } = useAuth();
-  const { consumePendingItem, addToCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,10 +23,6 @@ const LoginPage = () => {
     const result = await login({ email, password });
 
     if (result.success) {
-      const pendingItem = consumePendingItem();
-      if (pendingItem) {
-        addToCart(pendingItem);
-      }
       navigate(from, { replace: true });
     } else {
       setError(result.message);
