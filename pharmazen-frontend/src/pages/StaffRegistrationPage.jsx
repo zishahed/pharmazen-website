@@ -29,6 +29,19 @@ function StaffRegistrationPage() {
     setSuccess('');
     setIsLoading(true);
 
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      setIsLoading(false);
+      return;
+    }
+
+    const alphanumericRegex = /^(?=.*[a-zA-Z])(?=.*\d)/;
+    if (!alphanumericRegex.test(formData.password)) {
+      setError('Password must be alphanumeric (contain both letters and numbers)');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await registerStaff(formData);
       setSuccess(`${response.data.user.role === 'admin' ? 'Administrator' : 'Pharmacist'} account created successfully for ${response.data.user.name}!`);
@@ -111,11 +124,11 @@ function StaffRegistrationPage() {
               value={formData.password}
               onChange={handleChange}
               className={styles.input}
-              placeholder="Enter password (min 6 characters)"
+              placeholder="Enter password (min 8 characters, letters & numbers)"
               required
-              minLength={6}
+              minLength={8}
             />
-            <small className={styles.hint}>Minimum 6 characters</small>
+            <small className={styles.hint}>Minimum 8 characters, must contain letters and numbers</small>
           </div>
 
           <div className={styles.formGroup}>

@@ -99,26 +99,38 @@ model Medicine {
 }
 
 model Prescription {
-  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId           String             @db.Uuid @map("user_id")
-  fileUrl          String             @map("file_url")
-  cloudinaryId     String             @map("cloudinary_public_id")
-  medicineId       String             @db.Uuid @map("medicine_id")
-  medicineName    String             @map("medicine_name")
-  startDate       DateTime            @map("start_date") @db.Date
-  endDate         DateTime            @map("end_date") @db.Date
-  comment         String?
-  status           PrescriptionStatus @default(pending)
-  reviewedBy      String?            @db.Uuid @map("reviewed_by")
-  reviewNote      String?            @map("review_note")
-  createdAt       DateTime           @default(now()) @map("created_at")
+  id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String             @db.Uuid @map("user_id")
+  medicineId   String             @db.Uuid @map("medicine_id")
+  medicineName String             @map("medicine_name")
+  startDate    DateTime           @map("start_date") @db.Date
+  endDate      DateTime           @map("end_date") @db.Date
+  comment      String?
+  status       PrescriptionStatus @default(pending)
+  reviewedBy   String?            @db.Uuid @map("reviewed_by")
+  reviewNote   String?            @map("review_note")
+  createdAt    DateTime           @default(now()) @map("created_at")
 
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer User?  @relation("ReviewedBy", fields: [reviewedBy], references: [id])
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User?              @relation("ReviewedBy", fields: [reviewedBy], references: [id])
   orders   Order[]
+  files    PrescriptionFile[]
 
   @@index([userId])
   @@map("prescriptions")
+}
+
+model PrescriptionFile {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prescriptionId String       @map("prescription_id") @db.Uuid
+  fileUrl        String       @map("file_url")
+  cloudinaryId   String       @map("cloudinary_public_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  @@index([prescriptionId])
+  @@map("prescription_files")
 }
 
 model Cart {

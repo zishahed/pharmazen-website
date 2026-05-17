@@ -115,14 +115,28 @@
   display: none;
 }
 
+.filesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
 .filePreview {
   position: relative;
-  display: inline-block;
+  border: 1px solid var(--gray-border);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
 }
 
 .previewImage {
   max-width: 100%;
-  max-height: 300px;
+  max-height: 120px;
   border-radius: var(--border-radius);
   object-fit: contain;
 }
@@ -131,26 +145,31 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   color: var(--primary-blue);
 }
 
 .pdfPreview svg {
-  width: 64px;
-  height: 64px;
+  width: 40px;
+  height: 40px;
 }
 
 .pdfPreview span {
   word-break: break-all;
-  font-size: 14px;
+  font-size: 12px;
+  text-align: center;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .removeFileBtn {
   position: absolute;
-  top: -12px;
-  right: -12px;
-  width: 32px;
-  height: 32px;
+  top: -10px;
+  right: -10px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: var(--danger-red);
   color: white;
@@ -168,8 +187,40 @@
 }
 
 .removeFileBtn svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
+}
+
+.addMoreBtn {
+  border: 2px dashed var(--gray-border);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--gray-medium);
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 140px;
+  background: var(--gray-light);
+}
+
+.addMoreBtn:hover {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+  background: rgba(0, 74, 173, 0.05);
+}
+
+.addMoreBtn svg {
+  width: 32px;
+  height: 32px;
+}
+
+.addMoreBtn span {
+  font-size: 13px;
+  font-weight: var(--font-medium);
 }
 
 .requiredLabel {

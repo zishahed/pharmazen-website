@@ -5,6 +5,8 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import styles from './CartPage.module.css';
 
+const MAX_QUANTITY = 5;
+
 const CartPage = () => {
   const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, getCartCount, isLoading } = useCart();
@@ -126,6 +128,7 @@ const CartPage = () => {
                     <span className={styles.quantity}>{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      disabled={item.quantity >= MAX_QUANTITY}
                       className={styles.qtyBtn}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

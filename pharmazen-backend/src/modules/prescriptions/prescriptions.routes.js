@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { authenticate } = require('../../middleware/auth');
+const { authenticate, authorize } = require('../../middleware/auth');
 const prescriptionsController = require('./prescriptions.controller');
 
 const upload = multer({
@@ -22,9 +22,14 @@ const upload = multer({
 router.use(authenticate);
 
 // POST /api/prescriptions - Upload prescription with file
-router.post('/', upload.single('file'), prescriptionsController.uploadPrescription);
+router.post('/', upload.array('files', 4), prescriptionsController.uploadPrescription);
 
 // GET /api/prescriptions - Get user prescriptions
 router.get('/', prescriptionsController.getUserPrescriptions);
+
+// Pharmacist/Admin routes
+router.get('/pending', authorize('pharmacist', 'admin'), prescriptionsController.getPendingPrescriptions);
+router.get('/:id', authorize('pharmacist', 'admin'), prescriptionsController.getPrescriptionById);
+router.put('/:id/review', authorize('pharmacist', 'admin'), prescriptionsController.reviewPrescription);
 
 module.exports = router;

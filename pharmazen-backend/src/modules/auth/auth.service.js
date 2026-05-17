@@ -107,6 +107,7 @@ const login = async ({ email, password }) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      createdAt: user.createdAt,
     },
     accessToken,
     refreshToken,
@@ -249,6 +250,26 @@ const registerStaff = async ({ name, email, password, role }) => {
   return user;
 };
 
+const getUserById = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return user;
+};
+
 module.exports = {
   register,
   login,
@@ -256,4 +277,5 @@ module.exports = {
   logout,
   revokeAllUserTokens,
   registerStaff,
+  getUserById,
 };

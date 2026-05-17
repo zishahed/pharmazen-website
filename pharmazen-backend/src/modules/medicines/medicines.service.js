@@ -7,10 +7,10 @@ const prisma = new PrismaClient();
  * @returns {Object} - { medicines, total, page, totalPages }
  */
 async function getMedicines(params) {
-  const { page = 1, limit = 20, genericName, company, categoryId, minPrice, maxPrice, search } = params;
+  const { page = 1, limit = 20, genericName, company, categoryId, minPrice, maxPrice, search, requiresPrescription } = params;
 
   // Check if any filters are applied
-  const hasFilters = !!(genericName || company || categoryId || minPrice || maxPrice || search);
+  const hasFilters = !!(genericName || company || categoryId || minPrice || maxPrice || search || requiresPrescription !== undefined);
 
   // Build where clause
   const where = {};
@@ -39,6 +39,13 @@ async function getMedicines(params) {
   // Filter by category
   if (categoryId) {
     where.categoryId = categoryId;
+  }
+
+  // Filter by prescription requirement
+  if (requiresPrescription === 'true') {
+    where.requiresPrescription = true;
+  } else if (requiresPrescription === 'false') {
+    where.requiresPrescription = false;
   }
 
   // Filter by price range
@@ -180,9 +187,94 @@ async function getRestrictedMedicines(search) {
   }
 }
 
+async function getMedicineById(id) {
+  try {
+    const medicine = await prisma.medicine.findUnique({
+      where: { id },
+      include: { category: true },
+    });
+    return medicine;
+  } catch (error) {
+    console.error('Error fetching medicine by ID:', error);
+    throw new Error('Failed to fetch medicine');
+  }
+}
+
+async function createMedicine(data) {
+  try {
+    const medicine = await prisma.medicine.create({
+      data: {
+        name: data.name,
+        description: data.description || null,
+        categoryId: data.categoryId,
+        price: parseFloat(data.price),
+        stockQuantity: parseInt(data.stockQuantity),
+        expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
+        requiresPrescription: data.requiresPrescription || false,
+      },
+      include: { category: true },
+    });
+    return medicine;
+  } catch (error) {
+    console.error('Error creating medicine:', error);
+    throw new Error('Failed to create medicine');
+  }
+}
+
+async function updateMedicine(id, data) {
+  try {
+    const medicine = await prisma.medicine.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.categoryId !== undefined && { categoryId: data.categoryId }),
+        ...(data.price !== undefined && { price: parseFloat(data.price) }),
+        ...(data.stockQuantity !== undefined && { stockQuantity: parseInt(data.stockQuantity) }),
+        ...(data.expiryDate !== undefined && { expiryDate: data.expiryDate ? new Date(data.expiryDate) : null }),
+        ...(data.requiresPrescription !== undefined && { requiresPrescription: data.requiresPrescription }),
+      },
+      include: { category: true },
+    });
+    return medicine;
+  } catch (error) {
+    console.error('Error updating medicine:', error);
+    throw new Error('Failed to update medicine');
+  }
+}
+
+async function deleteMedicine(id) {
+  try {
+    await prisma.medicine.delete({ where: { id } });
+    return true;
+  } catch (error) {
+    console.error('Error deleting medicine:', error);
+    throw new Error('Failed to delete medicine');
+  }
+}
+
+async function updateStock(id, quantity) {
+  try {
+    const medicine = await prisma.medicine.update({
+      where: { id },
+      data: { stockQuantity: parseInt(quantity) },
+      include: { category: true },
+    });
+    return medicine;
+  } catch (error) {
+    console.error('Error updating stock:', error);
+    throw new Error('Failed to update stock');
+  }
+}
+
 module.exports = {
   getMedicines,
   getMaxPrice,
   getFilterOptions,
   getRestrictedMedicines,
+  getMedicineById,
+  createMedicine,
+  updateMedicine,
+  deleteMedicine,
+  updateStock,
 };

@@ -15,7 +15,6 @@ const CheckoutPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [prescriptionWarning, setPrescriptionWarning] = useState(false);
-  const [hasPrescriptionItems, setHasPrescriptionItems] = useState(false);
   const cartTotal = getCartTotal();
   const cartCount = getCartCount();
 
@@ -27,8 +26,6 @@ const CheckoutPage = () => {
     if (cartItems.length === 0) {
       navigate('/cart');
     }
-    const needsPrescription = cartItems.some(item => item.requiresPrescription);
-    setHasPrescriptionItems(needsPrescription);
   }, [isAuthenticated, cartItems, navigate]);
 
   const getPriceUnit = (dosageForm) => {
@@ -50,12 +47,6 @@ const CheckoutPage = () => {
   const handlePayment = async () => {
     setIsProcessing(true);
     setError(null);
-
-    if (hasPrescriptionItems) {
-      setPrescriptionWarning(true);
-      setIsProcessing(false);
-      return;
-    }
 
     try {
       const response = await fetch(`${API_BASE}/orders`, {

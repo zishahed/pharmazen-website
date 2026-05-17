@@ -33,8 +33,14 @@ const RegisterPage = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    const alphanumericRegex = /^(?=.*[a-zA-Z])(?=.*\d)/;
+    if (!alphanumericRegex.test(formData.password)) {
+      setError('Password must be alphanumeric (contain both letters and numbers)');
       return;
     }
 
@@ -118,7 +124,7 @@ const RegisterPage = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Create a password (min. 6 characters)"
+                placeholder="Create a password (min. 8 characters, letters & numbers)"
                 required
               />
             </div>

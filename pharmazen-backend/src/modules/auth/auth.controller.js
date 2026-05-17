@@ -25,11 +25,19 @@ const register = async (req, res) => {
       });
     }
 
-    // Password validation (minimum 6 characters)
-    if (password.length < 6) {
+    // Password validation (minimum 8 characters, alphanumeric)
+    if (password.length < 8) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 6 characters long',
+        message: 'Password must be at least 8 characters long',
+      });
+    }
+
+    const alphanumericRegex = /^(?=.*[a-zA-Z])(?=.*\d)/;
+    if (!alphanumericRegex.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be alphanumeric (contain both letters and numbers)',
       });
     }
 
@@ -181,10 +189,11 @@ const logout = async (req, res) => {
  */
 const getCurrentUser = async (req, res) => {
   try {
+    const user = await authService.getUserById(req.user.id);
     res.json({
       success: true,
       data: {
-        user: req.user,
+        user,
       },
     });
   } catch (error) {
@@ -243,11 +252,19 @@ const registerStaff = async (req, res) => {
       });
     }
 
-    // Password validation (minimum 6 characters)
-    if (password.length < 6) {
+    // Password validation (minimum 8 characters, alphanumeric)
+    if (password.length < 8) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 6 characters long',
+        message: 'Password must be at least 8 characters long',
+      });
+    }
+
+    const alphanumericRegex = /^(?=.*[a-zA-Z])(?=.*\d)/;
+    if (!alphanumericRegex.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be alphanumeric (contain both letters and numbers)',
       });
     }
 

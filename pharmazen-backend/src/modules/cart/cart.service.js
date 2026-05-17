@@ -1,6 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+const MAX_QUANTITY = 5;
+
 async function getCart(userId) {
   const cart = await prisma.cart.findUnique({
     where: { userId },
@@ -63,11 +65,18 @@ async function addToCart(userId, medicineId, quantity = 1) {
   });
 
   if (existingItem) {
+    const newQuantity = existingItem.quantity + quantity;
+    if (newQuantity > MAX_QUANTITY) {
+      throw new Error(`Maximum ${MAX_QUANTITY} units allowed per medicine`);
+    }
     await prisma.cartItem.update({
       where: { id: existingItem.id },
-      data: { quantity: existingItem.quantity + quantity }
+      data: { quantity: newQuantity }
     });
   } else {
+    if (quantity > MAX_QUANTITY) {
+      throw new Error(`Maximum ${MAX_QUANTITY} units allowed per medicine`);
+    }
     await prisma.cartItem.create({
       data: {
         cartId: cart.id,
@@ -96,6 +105,8 @@ async function updateCartItemQuantity(userId, medicineId, quantity) {
         medicineId
       }
     });
+  } else if (quantity > MAX_QUANTITY) {
+    throw new Error(`Maximum ${MAX_QUANTITY} units allowed per medicine`);
   } else {
     await prisma.cartItem.updateMany({
       where: {

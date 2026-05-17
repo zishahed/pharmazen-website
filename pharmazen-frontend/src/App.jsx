@@ -12,7 +12,12 @@ import UnauthorizedPage from './pages/UnauthorizedPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PaymentStatusPage from './pages/PaymentStatusPage';
+import PrescriptionsPage from './pages/PrescriptionsPage';
 import PrescriptionUploadPage from './pages/PrescriptionUploadPage';
+import PrescriptionReviewPage from './pages/PrescriptionReviewPage';
+import OrdersPage from './pages/OrdersPage';
+import ProfilePage from './pages/ProfilePage';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 function App() {
   return (
@@ -33,6 +38,14 @@ function App() {
             
             {/* Customer-only routes */}
             <Route 
+              path="/prescriptions" 
+              element={
+                <ProtectedRoute allowedRoles={['customer']}>
+                  <PrescriptionsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/upload-prescription" 
               element={
                 <ProtectedRoute allowedRoles={['customer']}>
@@ -41,12 +54,47 @@ function App() {
               } 
             />
             
+            <Route 
+              path="/orders" 
+              element={
+                <ProtectedRoute allowedRoles={['customer']}>
+                  <OrdersPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute allowedRoles={['customer', 'pharmacist', 'admin']}>
+                  <ProfilePage />
+                </ProtectedRoute>
+              } 
+            />
+
             {/* Admin-only routes */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
             <Route 
               path="/admin/register-staff" 
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <StaffRegistrationPage />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Pharmacist/Admin-only routes */}
+            <Route 
+              path="/review-prescriptions" 
+              element={
+                <ProtectedRoute allowedRoles={['pharmacist', 'admin']}>
+                  <PrescriptionReviewPage />
                 </ProtectedRoute>
               } 
             />

@@ -2,6 +2,8 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+const MAX_QUANTITY = 5;
+
 const createOrderFromCart = async (userId) => {
   const cart = await prisma.cart.findUnique({
     where: { userId },
@@ -16,6 +18,11 @@ const createOrderFromCart = async (userId) => {
 
   if (!cart || cart.items.length === 0) {
     throw new Error('Cart is empty');
+  }
+
+  const overLimit = cart.items.find(item => item.quantity > MAX_QUANTITY);
+  if (overLimit) {
+    throw new Error(`Maximum ${MAX_QUANTITY} units allowed per medicine. "${overLimit.medicine.name}" exceeds the limit.`);
   }
 
   const hasPrescriptionRequired = cart.items.some(
@@ -151,7 +158,14 @@ const getOrderById = async (userId, orderId) => {
         },
       },
       payment: true,
-      prescription: true,
+      prescription: {
+        include: {
+          files: {
+            select: { fileUrl: true },
+            take: 1,
+          },
+        },
+      },
     },
   });
 
@@ -180,7 +194,7 @@ const getOrderById = async (userId, orderId) => {
     prescription: order.prescription ? {
       id: order.prescription.id,
       status: order.prescription.status,
-      fileUrl: order.prescription.fileUrl,
+      fileUrl: order.prescription.files?.[0]?.fileUrl || null,
     } : null,
   };
 };

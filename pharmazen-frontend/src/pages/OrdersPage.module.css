@@ -1,0 +1,370 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  padding: 32px 16px;
+  background: var(--gray-light);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: var(--font-bold);
+  color: var(--gray-dark);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--gray-medium);
+}
+
+.errorMessage {
+  position: relative;
+  padding: 14px 48px 14px 16px;
+  background: var(--danger-bg);
+  color: var(--danger-red);
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(229, 62, 62, 0.3);
+}
+
+.errorDismiss {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--danger-red);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.errorDismiss svg {
+  width: 16px;
+  height: 16px;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 24px;
+  color: var(--gray-medium);
+  gap: 16px;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--gray-border);
+  border-top-color: var(--primary-blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 24px;
+  color: var(--gray-medium);
+  gap: 16px;
+}
+
+.emptyState svg {
+  width: 64px;
+  height: 64px;
+  opacity: 0.3;
+}
+
+.emptyState p {
+  font-size: 18px;
+  font-weight: var(--font-medium);
+}
+
+.shopBtn {
+  margin-top: 8px;
+  padding: 14px 28px;
+  background: var(--gradient-blue);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(0, 74, 173, 0.2);
+}
+
+.shopBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 74, 173, 0.3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.card:hover {
+  box-shadow: var(--box-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.cardTop {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--gray-border);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.orderIdRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orderIdLabel {
+  font-size: 14px;
+  color: var(--gray-medium);
+  font-weight: var(--font-medium);
+}
+
+.orderId {
+  font-size: 18px;
+  font-weight: var(--font-bold);
+  color: var(--gray-dark);
+  font-family: monospace;
+}
+
+.badges {
+  display: flex;
+  gap: 8px;
+}
+
+.statusBadge {
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.statusPending {
+  color: var(--warning-amber);
+  background: var(--warning-bg);
+}
+
+.statusAwaiting {
+  color: #d69e2e;
+  background: #fffff0;
+}
+
+.statusPaid {
+  color: var(--success-green);
+  background: var(--success-bg);
+}
+
+.statusCancelled {
+  color: var(--danger-red);
+  background: var(--danger-bg);
+}
+
+.paymentUnpaid {
+  color: var(--warning-amber);
+  background: var(--warning-bg);
+}
+
+.paymentPaid {
+  color: var(--success-green);
+  background: var(--success-bg);
+}
+
+.paymentFailed {
+  color: var(--danger-red);
+  background: var(--danger-bg);
+}
+
+.cardMeta {
+  display: flex;
+  gap: 24px;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--gray-medium);
+}
+
+.metaItem svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.cardBody {
+  padding: 16px 24px;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.orderItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  padding: 6px 0;
+}
+
+.orderItem + .orderItem {
+  border-top: 1px solid var(--gray-border);
+  padding-top: 8px;
+}
+
+.itemName {
+  flex: 1;
+  color: var(--gray-dark);
+  font-weight: var(--font-medium);
+}
+
+.itemQty {
+  color: var(--gray-medium);
+  min-width: 32px;
+  text-align: center;
+}
+
+.itemPrice {
+  color: var(--gray-dark);
+  font-weight: var(--font-semibold);
+  min-width: 72px;
+  text-align: right;
+  font-family: monospace;
+}
+
+.cardFooter {
+  padding: 16px 24px;
+  background: var(--gray-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.totalLabel {
+  font-size: 16px;
+  color: var(--gray-dark);
+  font-weight: var(--font-semibold);
+}
+
+.totalAmount {
+  font-size: 20px;
+  font-weight: var(--font-bold);
+  color: var(--primary-blue);
+  font-family: monospace;
+}
+
+.cancelBtn {
+  padding: 8px 20px;
+  background: white;
+  color: var(--danger-red);
+  border: 1px solid var(--danger-red);
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background: var(--danger-red);
+  color: white;
+}
+
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .cardTop {
+    padding: 16px;
+  }
+
+  .cardBody {
+    padding: 12px 16px;
+  }
+
+  .cardFooter {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .badges {
+    flex-wrap: wrap;
+  }
+
+  .cardMeta {
+    flex-direction: column;
+    gap: 6px;
+  }
+}

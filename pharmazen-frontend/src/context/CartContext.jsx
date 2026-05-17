@@ -11,6 +11,7 @@ export const useCart = () => {
 };
 
 const API_BASE = 'http://localhost:5000/api';
+const MAX_QUANTITY = 5;
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
@@ -111,10 +112,14 @@ export const CartProvider = ({ children }) => {
       const existingIndex = prev.findIndex((i) => i.id === item.id);
       let updated;
       if (existingIndex >= 0) {
+        const currentQty = prev[existingIndex].quantity;
+        if (currentQty >= MAX_QUANTITY) {
+          return prev;
+        }
         updated = [...prev];
         updated[existingIndex] = {
           ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + 1,
+          quantity: currentQty + 1,
         };
       } else {
         updated = [...prev, { ...item, quantity: 1 }];
@@ -156,6 +161,9 @@ export const CartProvider = ({ children }) => {
   const updateQuantity = useCallback(async (itemId, quantity) => {
     if (quantity < 1) {
       return removeFromCart(itemId);
+    }
+    if (quantity > MAX_QUANTITY) {
+      return;
     }
     
     try {

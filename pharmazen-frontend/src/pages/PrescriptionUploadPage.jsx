@@ -11,8 +11,8 @@ const PrescriptionUploadPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isCustomer } = useAuth();
 
-  const [prescriptionFile, setPrescriptionFile] = useState(null);
-  const [filePreview, setFilePreview] = useState(null);
+  const [prescriptionFiles, setPrescriptionFiles] = useState([]);
+  const [filePreviews, setFilePreviews] = useState([]);
   const [medicines, setMedicines] = useState([]);
   const [filteredMedicines, setFilteredMedicines] = useState([]);
   const [medicineSearch, setMedicineSearch] = useState('');
@@ -74,43 +74,61 @@ const PrescriptionUploadPage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const processFiles = (newFiles) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    const validFiles = [];
+    const validPreviews = [];
+    let errorMsg = '';
+
+    for (const file of newFiles) {
+      if (!allowedTypes.includes(file.type)) {
+        errorMsg = 'Only JPG, PNG, and PDF files are allowed';
+        continue;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        errorMsg = 'Each file must be less than 10MB';
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (prescriptionFiles.length + validFiles.length > 4) {
+      setError('Maximum 4 files allowed');
+      return;
+    }
+
+    if (validFiles.length === 0) {
+      setError(errorMsg || 'No valid files selected');
+      return;
+    }
+
+    setError('');
+
+    const previewPromises = validFiles.map((file) => {
+      if (file.type.startsWith('image/')) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve({ file, preview: reader.result });
+          reader.readAsDataURL(file);
+        });
+      }
+      return Promise.resolve({ file, preview: null });
+    });
+
+    Promise.all(previewPromises).then((results) => {
+      setPrescriptionFiles((prev) => [...prev, ...results.map((r) => r.file)]);
+      setFilePreviews((prev) => [...prev, ...results.map((r) => r.preview)]);
+    });
+  };
+
   const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    processFile(file);
+    processFiles(Array.from(e.target.files));
+    e.target.value = '';
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    processFile(file);
-  };
-
-  const processFile = (file) => {
-    if (!file) return;
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      setError('Please upload an image (JPG, PNG) or PDF file');
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB');
-      return;
-    }
-
-    setPrescriptionFile(file);
-    setError('');
-
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFilePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setFilePreview(null);
-    }
+    processFiles(Array.from(e.dataTransfer.files));
   };
 
   const handleDragOver = (e) => {
@@ -123,16 +141,13 @@ const PrescriptionUploadPage = () => {
     setShowMedicineDropdown(false);
   };
 
-  const removeFile = () => {
-    setPrescriptionFile(null);
-    setFilePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const removeFile = (index) => {
+    setPrescriptionFiles((prev) => prev.filter((_, i) => i !== index));
+    setFilePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const isFormValid = () => {
-    return prescriptionFile && selectedMedicine && startDate && endDate;
+    return prescriptionFiles.length > 0 && selectedMedicine && startDate && endDate;
   };
 
   const handleSubmit = async (e) => {
@@ -154,7 +169,9 @@ const PrescriptionUploadPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('file', prescriptionFile);
+      prescriptionFiles.forEach((file) => {
+        formData.append('files', file);
+      });
       formData.append('medicineId', selectedMedicine.id);
       formData.append('medicineName', selectedMedicine.name);
       formData.append('startDate', startDate);
@@ -212,39 +229,57 @@ const PrescriptionUploadPage = () => {
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
               >
-                {prescriptionFile ? (
-                  <div className={styles.filePreview}>
-                    {filePreview ? (
-                      <img src={filePreview} alt="Prescription preview" className={styles.previewImage} />
-                    ) : (
-                      <div className={styles.pdfPreview}>
+                {prescriptionFiles.length > 0 ? (
+                  <div className={styles.filesGrid}>
+                    {prescriptionFiles.map((file, index) => (
+                      <div key={index} className={styles.filePreview}>
+                        {filePreviews[index] ? (
+                          <img src={filePreviews[index]} alt={`Prescription ${index + 1}`} className={styles.previewImage} />
+                        ) : (
+                          <div className={styles.pdfPreview}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span>{file.name}</span>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.removeFileBtn}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFile(index);
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                    {prescriptionFiles.length < 4 && (
+                      <div
+                        className={styles.addMoreBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                      >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        <span>{prescriptionFile.name}</span>
+                        <span>Add more</span>
                       </div>
                     )}
-                    <button
-                      type="button"
-                      className={styles.removeFileBtn}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFile();
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
                   </div>
                 ) : (
                   <div className={styles.dropzoneContent}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    <p>Drag and drop your prescription here</p>
+                    <p>Drag and drop your prescription files here</p>
                     <span>or click to browse</span>
-                    <span className={styles.fileTypes}>JPG, PNG, PDF (max 10MB)</span>
+                    <span className={styles.fileTypes}>JPG, PNG, PDF (max 10MB each, up to 4 files)</span>
                   </div>
                 )}
                 <input
@@ -253,9 +288,10 @@ const PrescriptionUploadPage = () => {
                   onChange={handleFileSelect}
                   accept="image/jpeg,image/png,image/jpg,application/pdf"
                   className={styles.fileInput}
+                  multiple
                 />
               </div>
-              <span className={styles.requiredLabel}>* Required</span>
+              <span className={styles.requiredLabel}>* Required (up to 4 files)</span>
             </div>
 
             <div className={styles.section}>
