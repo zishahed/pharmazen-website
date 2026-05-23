@@ -33,18 +33,29 @@ const createOrderFromCart = async (userId) => {
   let prescriptionId = null;
 
   if (hasPrescriptionRequired) {
-    const pendingPrescription = await prisma.prescription.findFirst({
-      where: {
-        userId,
-        status: 'approved',
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const now = new Date();
+    const restrictedMedicineIds = cart.items
+      .filter(item => item.medicine.requiresPrescription)
+      .map(item => item.medicine.id);
 
-    if (!pendingPrescription) {
-      orderStatus = 'awaiting_prescription';
-    } else {
-      prescriptionId = pendingPrescription.id;
+    for (const medicineId of restrictedMedicineIds) {
+      const approvedPrescription = await prisma.prescription.findFirst({
+        where: {
+          userId,
+          medicineId,
+          status: 'approved',
+          startDate: { lte: now },
+          endDate: { gte: now },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (!approvedPrescription) {
+        const medicine = await prisma.medicine.findUnique({ where: { id: medicineId }, select: { name: true } });
+        throw new Error(`Restricted medicine "${medicine?.name}" requires an approved prescription. Please upload a prescription for this medicine and wait for pharmacist approval.`);
+      }
+
+      prescriptionId = approvedPrescription.id;
     }
   }
 

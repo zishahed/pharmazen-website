@@ -56,16 +56,15 @@ const CheckoutPage = () => {
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.message || 'Failed to create order');
+        if (result.message && result.message.includes('prescription')) {
+          setPrescriptionWarning(true);
+        } else {
+          setError(result.message || 'Failed to create order');
+        }
+        return;
       }
 
       const order = result.data;
-
-      if (order.prescriptionRequired) {
-        setPrescriptionWarning(true);
-        setIsProcessing(false);
-        return;
-      }
 
       const paymentResponse = await fetch(`${API_BASE}/payments/create`, {
         method: 'POST',
@@ -168,7 +167,24 @@ const CheckoutPage = () => {
                 </svg>
                 <div>
                   <strong>Prescription Required</strong>
-                  <p>Some items in your cart require a valid, approved prescription. Please upload a prescription first.</p>
+                  <p>Your cart contains restricted medicines. You need an approved prescription to complete this purchase. Upload a prescription and wait for pharmacist approval.</p>
+                  <div className={styles.warningActions}>
+                    <button 
+                      className={styles.uploadPrescriptionBtn}
+                      onClick={() => navigate('/upload-prescription')}
+                    >
+                      Upload Prescription
+                    </button>
+                    <button 
+                      className={styles.dismissBtn}
+                      onClick={() => {
+                        setPrescriptionWarning(false);
+                        setError(null);
+                      }}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

@@ -284,6 +284,48 @@
   line-height: 1.4;
 }
 
+.uploadPrescriptionBtn {
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.uploadPrescriptionBtn:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.warningActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.dismissBtn {
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: transparent;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dismissBtn:hover {
+  background: #fef3c7;
+}
+
 .errorMessage {
   background: #fff5f5;
   color: #c53030;

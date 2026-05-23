@@ -17,6 +17,10 @@ const createPaymentSession = async (userId, orderId, amount) => {
     throw new Error('Order already paid');
   }
 
+  if (order.status === 'awaiting_prescription') {
+    throw new Error('Cannot pay for this order. Prescription approval required.');
+  }
+
   const merchantInvoiceNumber = `PHZ${orderId.replace(/-/g, '').substring(0, 12)}${Date.now()}`;
 
   const bkashResponse = await bkashService.createPayment(
