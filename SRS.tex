@@ -1,0 +1,572 @@
+\documentclass[12pt, a4paper]{article}
+
+% ─── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{titling}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage{mdframed}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{fontenc}
+\usepackage{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{tocloft}
+\usepackage{tikz}
+
+% ─── Colors ────────────────────────────────────────────────────────────────────
+\definecolor{pharmagreen}{HTML}{2D6A4F}
+\definecolor{darkgreen}{HTML}{1A3C2E}
+\definecolor{lightgreen}{HTML}{D8F3DC}
+\definecolor{medgreen}{HTML}{B7E4C7}
+\definecolor{priorityhigh}{HTML}{D62828}
+\definecolor{prioritymed}{HTML}{E36414}
+\definecolor{prioritylow}{HTML}{2D6A4F}
+\definecolor{rowgray}{HTML}{F4F4F4}
+\definecolor{textgray}{HTML}{555555}
+\definecolor{darktext}{HTML}{1B1B1B}
+
+% ─── Hyperref ──────────────────────────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true,
+  linkcolor=pharmagreen,
+  urlcolor=pharmagreen,
+  citecolor=pharmagreen,
+  pdftitle={PharmaZen SRS},
+  pdfauthor={PharmaZen Development Team}
+}
+
+% ─── Section Formatting ────────────────────────────────────────────────────────
+\titleformat{\section}
+  {\color{pharmagreen}\Large\bfseries}
+  {\thesection}{1em}{}
+  [\color{pharmagreen}\titlerule]
+
+\titleformat{\subsection}
+  {\color{darkgreen}\large\bfseries}
+  {\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}
+  {\color{pharmagreen}\normalsize\bfseries}
+  {\thesubsubsection}{1em}{}
+
+\titlespacing*{\section}{0pt}{20pt}{8pt}
+\titlespacing*{\subsection}{0pt}{14pt}{6pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{4pt}
+
+% ─── Header & Footer ───────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{pharmagreen}\textbf{PharmaZen} \color{textgray} Software Requirements Specification}
+\fancyhead[R]{\small\color{textgray}v1.0}
+\fancyfoot[C]{\small\color{textgray}PharmaZen SRS v1.0 \quad|\quad Page \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{pharmagreen}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\footrule}{\hbox to\headwidth{\color{pharmagreen}\leaders\hrule height \footrulewidth\hfill}}
+
+% ─── Table column types ────────────────────────────────────────────────────────
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+% ─── Section Badge ─────────────────────────────────────────────────────────────
+\newcommand{\sectionbadge}[2]{%
+  \vspace{12pt}
+  \noindent
+  \colorbox{pharmagreen}{%
+    \parbox{\dimexpr\textwidth-2\fboxsep\relax}{%
+      \vspace{4pt}
+      \color{white}\small\bfseries\MakeUppercase{SECTION #1 \quad·\quad #2}
+      \vspace{4pt}
+    }%
+  }
+  \vspace{6pt}
+}
+
+% ─── Priority Commands ─────────────────────────────────────────────────────────
+\newcommand{\phigh}{\textcolor{priorityhigh}{\textbf{High}}}
+\newcommand{\pmed}{\textcolor{prioritymed}{\textbf{Medium}}}
+\newcommand{\plow}{\textcolor{prioritylow}{\textbf{Low}}}
+\newcommand{\pcrit}{\textcolor{priorityhigh}{\textbf{Critical}}}
+
+% ─── Requirement ID ────────────────────────────────────────────────────────────
+\newcommand{\rid}[1]{\textcolor{pharmagreen}{\textbf{\small #1}}}
+
+% ─── Info Table (label | value) ────────────────────────────────────────────────
+\newenvironment{infotable}{%
+  \renewcommand{\arraystretch}{1.4}
+  \begin{tabular}{|L{4cm}|L{11.5cm}|}
+  \hline
+}{%
+  \hline
+  \end{tabular}
+}
+
+\newcommand{\inforow}[2]{%
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}#1} & \small #2 \\
+  \hline
+}
+\newcommand{\inforowalt}[2]{%
+  \rowcolor{medgreen}\textbf{\small\color{darkgreen}#1} & \small #2 \\
+  \hline
+}
+
+% ─── Document ──────────────────────────────────────────────────────────────────
+\begin{document}
+\pagenumbering{gobble}  % no page number on cover
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  COVER PAGE
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{titlepage}
+  \centering
+  \vspace*{3cm}
+
+  {\fontsize{42}{50}\selectfont\color{pharmagreen}\textbf{PharmaZen}}
+
+  \vspace{0.6cm}
+  {\Large\color{textgray} Software Requirements Specification}
+
+  \vspace{2cm}
+  \begin{tikzpicture}
+    \draw[color=pharmagreen, line width=1.5pt] (0,0) -- (\textwidth,0);
+  \end{tikzpicture}
+
+  \vspace{1.5cm}
+  \colorbox{lightgreen}{%
+    \parbox{12cm}{%
+      \vspace{10pt}
+      \centering
+      \renewcommand{\arraystretch}{1.6}
+      \begin{tabular}{rl}
+        \textbf{Document Version:} & 1.0 \\
+        \textbf{Status:}           & Draft \\
+        \textbf{Date:}             & March 2026 \\
+        \textbf{Owners:}           & Zunayed Iqbal Shaed (23524202028) \\
+                                   & Rudro Roy (23524202060) \\
+                                   & Ovizit Dutt (23524202118) \\
+      \end{tabular}
+      \vspace{10pt}
+    }%
+  }
+
+  \vfill
+  \begin{tikzpicture}
+    \draw[color=pharmagreen, line width=1.5pt] (0,0) -- (\textwidth,0);
+  \end{tikzpicture}
+  \vspace{0.4cm}
+  {\small\color{textgray} This document is intended for the use of the PharmaZen project team and its authorized stakeholders.}
+\end{titlepage}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  SECTION 1 — INTRODUCTION
+% ══════════════════════════════════════════════════════════════════════════════
+\sectionbadge{1}{Introduction}
+\section{Introduction}
+
+This document establishes the complete Software Requirements Specification (SRS) for the \textbf{PharmaZen} website — an online pharmacy and health-product platform. It defines all functional and non-functional requirements to guide the development, testing, and delivery lifecycle.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Purpose}
+
+The purpose of this SRS is to provide a detailed and agreed-upon description of the PharmaZen website system. It serves as the foundational reference for all project stakeholders — including developers, designers, QA engineers, and business owners — ensuring a shared understanding of what the system must accomplish.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Intended Audience}
+
+This document is intended for the following parties:
+
+\begin{itemize}[leftmargin=1.5em, itemsep=4pt]
+  \item \textbf{Development Team} — Front-end and back-end engineers responsible for building the system
+  \item \textbf{UI/UX Designers} — Responsible for designing user interfaces that satisfy the stated requirements
+  \item \textbf{QA Engineers} — Responsible for validating implemented features against this specification
+  \item \textbf{Project Managers} — Overseeing schedule, scope, and delivery milestones
+  \item \textbf{Business Stakeholders} — PharmaZen owners and executives reviewing product direction
+  \item \textbf{Regulatory Reviewers} — Ensuring compliance with pharmaceutical and data regulations
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Intended Use}
+
+This SRS shall be used as:
+
+\begin{itemize}[leftmargin=1.5em, itemsep=4pt]
+  \item A contractual reference between the development team and business stakeholders
+  \item A baseline for test plan development and acceptance criteria
+  \item A guide for identifying and managing change requests throughout the project lifecycle
+  \item A reference document for onboarding new team members
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Product Scope}
+
+PharmaZen is a comprehensive e-commerce website specializing in pharmaceutical products, health supplements, personal care items, and related medical goods. The platform will enable customers to browse products, upload prescriptions, place orders, and manage their health profiles.
+
+Core capabilities of the platform include:
+
+\begin{itemize}[leftmargin=1.5em, itemsep=4pt]
+  \item Online pharmacy storefront with product catalog and search
+  \item Prescription upload, verification, and management
+  \item Secure user registration, authentication, and profile management
+  \item Order placement, real-time tracking, and order history
+  \item Admin dashboard for inventory, order, and user management
+  \item Integration with bKash payment gateway
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Risk Definitions}
+
+The following risk severity levels are used throughout this document:
+
+\vspace{8pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|L{2.2cm}|L{3cm}|L{9.8cm}|}
+  \hline
+  \rowcolor{pharmagreen}\textbf{\color{white}Level} & \textbf{\color{white}Category} & \textbf{\color{white}Description} \\
+  \hline
+  \rowcolor{rowgray}\textcolor{priorityhigh}{\textbf{Critical}} & Business / Legal & Non-compliance with pharmaceutical regulations or data protection laws that could result in shutdown or legal action \\
+  \hline
+  \textcolor{priorityhigh}{\textbf{High}} & Security & Breaches or vulnerabilities that expose patient or payment data \\
+  \hline
+  \rowcolor{rowgray}\textcolor{prioritymed}{\textbf{Medium}} & Operational & System downtime or feature failures that degrade user experience significantly \\
+  \hline
+  \textcolor{prioritylow}{\textbf{Low}} & Performance & Minor slowdowns or UI inconsistencies that do not block core functionality \\
+  \hline
+\end{tabular}
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  SECTION 2 — OVERALL DESCRIPTION
+% ══════════════════════════════════════════════════════════════════════════════
+\sectionbadge{2}{Overall Description}
+\section{Overall Description}
+
+This section provides a high-level overview of the PharmaZen system, including its user base, operating environment, constraints, and assumptions that govern its design and development.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{User Classes and Characteristics}
+
+The PharmaZen platform serves four primary user classes, each with distinct access levels and interaction needs:
+
+\vspace{8pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|L{3.2cm}|L{12cm}|}
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}Guest Visitor} & \small Unauthenticated users who can browse the product catalog, view product details and prices, and create an account. Cannot place orders or upload prescriptions. \\
+  \hline
+  \rowcolor{medgreen}\textbf{\small\color{darkgreen}Registered Customer} & \small Authenticated users who can manage profiles, upload prescriptions, place and track orders, access order history, and contact pharmacists. Primary revenue-generating user class. \\
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}Pharmacist / Staff} & \small Licensed healthcare professionals who verify prescriptions and oversee medication safety flags. \\
+  \hline
+  \rowcolor{medgreen}\textbf{\small\color{darkgreen}System Administrator} & \small Technical and business administrators who manage all platform operations including user accounts, inventory, promotions, reports, and system configurations. \\
+  \hline
+\end{tabular}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{User Needs}
+
+Based on user class analysis, the following core needs have been identified:
+
+\subsubsection{Registered Customers}
+\begin{itemize}[leftmargin=1.5em, itemsep=3pt]
+  \item Easily search, filter, and find pharmaceutical and health products
+  \item Securely upload and manage prescriptions for prescribed medication orders
+  \item Complete purchases quickly with bKash payment
+  \item Track orders in real time from placement to delivery
+\end{itemize}
+
+\subsubsection{Pharmacists / Staff}
+\begin{itemize}[leftmargin=1.5em, itemsep=3pt]
+  \item Efficiently review and approve or reject uploaded prescriptions
+  \item Flag medications that require counseling or special handling
+\end{itemize}
+
+\subsubsection{System Administrators}
+\begin{itemize}[leftmargin=1.5em, itemsep=3pt]
+  \item Manage product inventory levels, categories, and pricing
+  \item Handle user disputes, returns, and policy enforcement
+  \item View sales analytics reports
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Operating Environment}
+
+The PharmaZen website will operate in the following technical environment:
+
+\vspace{8pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|L{3.2cm}|L{12cm}|}
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}Platform Type} & \small Web application accessible via modern desktop and mobile browsers \\
+  \hline
+  \rowcolor{medgreen}\textbf{\small\color{darkgreen}Frontend} & \small React.js (Vite) — responsive single-page application targeting screens from 320px to 2560px wide \\
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}Backend} & \small Node.js with Express.js REST API, or equivalent server-side framework \\
+  \hline
+  \rowcolor{medgreen}\textbf{\small\color{darkgreen}Database} & \small PostgreSQL hosted on Neon Tech (serverless) \\
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}Cloud Hosting} & \small Vercel (frontend and serverless functions); automatic CI/CD from Git repository \\
+  \hline
+  \rowcolor{medgreen}\textbf{\small\color{darkgreen}CDN} & \small Vercel Edge Network for static assets, images, and global performance \\
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}Browser Support} & \small Chrome 100+, Firefox 100+, Safari 15+, Edge 100+ on desktop and mobile \\
+  \hline
+  \rowcolor{medgreen}\textbf{\small\color{darkgreen}Payment Gateway} & \small Create mock bkash server for token pass testing, actual Sandbox requires trade license \\
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}SSL/TLS} & \small HTTPS enforced across all pages and API endpoints \\
+  \hline
+\end{tabular}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Constraints}
+
+\begin{itemize}[leftmargin=1.5em, itemsep=5pt]
+  \item \textbf{Regulatory Compliance:} The platform must comply with applicable pharmaceutical regulations and digital health guidelines in the operating jurisdiction.
+  \item \textbf{Data Privacy:} All user health and personal data must be handled in accordance with applicable data protection regulations (e.g., GDPR, HIPAA or local equivalents).
+  \item \textbf{Prescription Verification:} Medications classified as prescription-only must not be dispensed without a valid, verified prescription from a licensed pharmacist.
+  \item \textbf{Payment Security:} All payment processing must be handled securely via the bKash payment gateway.
+  \item \textbf{Technology Stack:} The development team is constrained to use the agreed-upon technology stack to ensure maintainability and team expertise alignment.
+  \item \textbf{Budget \& Timeline:} Development must be delivered within the agreed project budget and timeline as defined in the project charter.
+  \item \textbf{Third-Party APIs:} Features relying on external APIs (e.g., delivery tracking, payment) are subject to the availability and terms of those third-party providers.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Assumptions}
+
+\begin{itemize}[leftmargin=1.5em, itemsep=5pt]
+  \item All users accessing the platform are assumed to have access to a stable internet connection.
+  \item The platform will initially target a single jurisdiction/country; multi-country expansion is out of scope for v1.0.
+  \item Licensed pharmacists reviewing prescriptions will be pre-vetted and onboarded by PharmaZen management.
+  \item Payment gateway providers will maintain their service agreements and uptime SLAs.
+  \item Product catalog and inventory data will be initially seeded by the PharmaZen operations team.
+  \item Users are responsible for providing accurate health and prescription information; the platform is not liable for fraudulent submissions.
+  \item Third-party delivery partners will be responsible for last-mile logistics, and PharmaZen will integrate only with their tracking APIs.
+\end{itemize}
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  SECTION 3 — REQUIREMENTS
+% ══════════════════════════════════════════════════════════════════════════════
+\sectionbadge{3}{System Requirements}
+\section{Requirements}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Functional Requirements}
+
+Functional requirements define the specific behaviors and capabilities the PharmaZen system must provide.
+
+% ── Helper macro for requirement tables ──────────────────────────────────────
+% Columns: ID | Requirement | Description | Priority
+\newcommand{\reqtablestart}{%
+  \renewcommand{\arraystretch}{1.45}
+  \begin{longtable}{|L{1.4cm}|L{3.2cm}|L{8.6cm}|L{1.6cm}|}
+  \hline
+  \rowcolor{pharmagreen}
+  \textbf{\color{white}\small ID} &
+  \textbf{\color{white}\small Requirement} &
+  \textbf{\color{white}\small Description} &
+  \textbf{\color{white}\small Priority} \\
+  \hline
+  \endfirsthead
+  \hline
+  \rowcolor{pharmagreen}
+  \textbf{\color{white}\small ID} &
+  \textbf{\color{white}\small Requirement} &
+  \textbf{\color{white}\small Description} &
+  \textbf{\color{white}\small Priority} \\
+  \hline
+  \endhead
+}
+\newcommand{\reqtableend}{\end{longtable}}
+
+% ─ 3.1.1 ─────────────────────────────────────────────────────────────────────
+\subsubsection{User Registration \& Authentication}
+
+\reqtablestart
+\rid{FR-01} & \textbf{\small User Registration} & \small Users can register using an email address and password. & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{FR-02} & \textbf{\small User Login} & \small Registered users can log in with valid credentials. & \phigh \\
+\hline
+\rid{FR-03} & \textbf{\small Profile Management} & \small Authenticated users can update personal details (name, address, phone), medical profile, and communication preferences. & \phigh \\
+\hline
+\reqtableend
+
+% ─ 3.1.2 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Product Catalog \& Search}
+
+\reqtablestart
+\rid{FR-07} & \textbf{\small Product Listings} & \small All products must display name, image, category, price, dosage (if applicable), availability status, and a manufacturer description. & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{FR-08} & \textbf{\small Search Functionality} & \small Users can search products by name, category, brand, or active ingredient. Search results appear within 2 seconds. & \phigh \\
+\hline
+\rid{FR-09} & \textbf{\small Advanced Filters} & \small Users can filter results by price range, category, brand, prescription requirement, and in-stock status. & \pmed \\
+\hline
+\rowcolor{rowgray}\rid{FR-10} & \textbf{\small Product Detail Page} & \small Each product has a dedicated page with full description, images, dosage information, side effects, and related products. & \phigh \\
+\hline
+\reqtableend
+
+% ─ 3.1.3 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Prescription Management}
+
+\reqtablestart
+\rid{FR-13} & \textbf{\small Prescription Upload} & \small Users can upload prescriptions in PDF, JPEG, or PNG format (max 10 MB) for prescription-required items. & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{FR-14} & \textbf{\small Prescription Review} & \small Pharmacist staff can view, approve, or reject uploaded prescriptions with mandatory comment fields for rejections. & \phigh \\
+\hline
+\rid{FR-15} & \textbf{\small Prescription History} & \small Users can access a history of all submitted prescriptions and their current statuses. & \pmed \\
+\hline
+\reqtableend
+
+% ─ 3.1.4 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Shopping Cart \& Checkout}
+
+\reqtablestart
+\rid{FR-18} & \textbf{\small Shopping Cart} & \small Users can add, remove, and update quantities of products in a persistent cart (saved across sessions for authenticated users). & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{FR-19} & \textbf{\small Checkout Process} & \small Checkout flow includes delivery address selection, shipping method, payment, and order summary review before confirmation. & \phigh \\
+\hline
+\rid{FR-20} & \textbf{\small Payment Gateway} & \small The system supports payment via bKash mobile wallet. All transactions are processed over HTTPS. & \phigh \\
+\hline
+\rid{FR-21} & \textbf{\small Order Confirmation} & \small Upon successful payment, the user receives an on-screen confirmation with order details. & \phigh \\
+\hline
+\reqtableend
+
+% ─ 3.1.5 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Order Management}
+
+\reqtablestart
+\rid{FR-24} & \textbf{\small Order History} & \small Authenticated users can view all past orders with status, products, total cost, and delivery details. & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{FR-25} & \textbf{\small Order Tracking} & \small Users can view order status updates on their order history page. & \phigh \\
+\hline
+\rid{FR-26} & \textbf{\small Order Cancellation} & \small Users can cancel orders if the order has not been paid yet. & \pmed \\
+\hline
+\reqtableend
+
+% ─ 3.1.7 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Admin Dashboard}
+
+\reqtablestart
+\rid{FR-32} & \textbf{\small Inventory Management} & \small Admins can add, edit, deactivate products, and set low-stock alert thresholds. & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{FR-33} & \textbf{\small User Management} & \small Admins can view, suspend, or delete user accounts, and manage pharmacist onboarding. & \phigh \\
+\hline
+\rid{FR-34} & \textbf{\small Order Management} & \small Admins can view all orders, update statuses, initiate refunds, and flag disputes. & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{FR-35} & \textbf{\small Sales Analytics} & \small Admins can view sales breakdown by medicine, generic name, company, and category. & \pmed \\
+\hline
+\reqtableend
+
+\newpage
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Non-Functional Requirements}
+
+Non-functional requirements define the quality attributes and operational constraints the PharmaZen system must satisfy.
+
+% ─ 3.2.1 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Performance}
+
+\reqtablestart
+\rid{NFR-01} & \textbf{\small Page Load Time} & \small All public-facing pages must load within 3 seconds under normal load conditions (up to 500 concurrent users). & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{NFR-02} & \textbf{\small Search Response} & \small Product search queries must return results within 2 seconds for 95\% of requests. & \phigh \\
+\hline
+\rid{NFR-03} & \textbf{\small Checkout Throughput} & \small The checkout process must support at least 100 concurrent transactions without degradation in response time. & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{NFR-04} & \textbf{\small Scalability} & \small The system must horizontally scale to support up to 10,000 concurrent users during peak periods (e.g., promotional events). & \pmed \\
+\hline
+\reqtableend
+
+% ─ 3.2.2 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Security}
+
+\reqtablestart
+\rid{NFR-05} & \textbf{\small Data Encryption} & \small All sensitive data (passwords, health records, payment info) must be encrypted at rest (AES-256) and in transit (TLS 1.2+). & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{NFR-06} & \textbf{\small Auth Security} & \small Passwords must be hashed using bcrypt (minimum cost factor 12). Plain-text passwords must never be stored. & \phigh \\
+\hline
+\rid{NFR-07} & \textbf{\small Session Management} & \small User sessions must expire after 30 minutes of inactivity. JWT tokens must have a maximum lifespan of 24 hours. & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{NFR-08} & \textbf{\small Input Validation} & \small All user inputs must be validated and sanitized server-side to prevent SQL injection, XSS, and CSRF attacks. & \phigh \\
+\hline
+\rowcolor{rowgray}\rid{NFR-09} & \textbf{\small Vulnerability Scan} & \small The platform must undergo automated vulnerability scans (OWASP Top 10) before each major release. & \pmed \\
+\hline
+\reqtableend
+
+% ─ 3.2.3 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Reliability \& Availability}
+
+\reqtablestart
+\rid{NFR-11} & \textbf{\small Uptime SLA} & \small The platform must maintain a minimum uptime of 99.5\% measured on a monthly basis (excluding scheduled maintenance windows). & \phigh \\
+\hline
+\reqtableend
+
+% ─ 3.2.4 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Usability \& Accessibility}
+
+\reqtablestart
+\rid{NFR-16} & \textbf{\small Responsive Design} & \small All pages must be fully functional and visually consistent across screen sizes from 320px (mobile) to 2560px (desktop). & \phigh \\
+\hline
+\rid{NFR-17} & \textbf{\small Error Messages} & \small All error messages must be user-friendly, specific, and provide actionable guidance. Technical error codes must not be exposed to end users. & \pmed \\
+\hline
+\rowcolor{rowgray}\rid{NFR-19} & \textbf{\small Onboarding} & \small New users should be able to complete registration and place their first order within 5 minutes without external assistance. & \pmed \\
+\hline
+\reqtableend
+
+% ─ 3.2.5 ─────────────────────────────────────────────────────────────────────
+\subsubsection{Maintainability \& Compliance}
+
+\reqtablestart
+\rid{NFR-20} & \textbf{\small Code Standards} & \small All code must follow the agreed-upon coding standards and pass automated linting checks before merging to the main branch. & \pmed \\
+\hline
+\reqtableend
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  DOCUMENT CONTROL
+% ══════════════════════════════════════════════════════════════════════════════
+\vspace*{10pt}
+{\color{pharmagreen}\large\bfseries Document Control}
+\vspace{4pt}
+\textcolor{pharmagreen}{\rule{\textwidth}{1pt}}
+\vspace{8pt}
+
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|L{3.8cm}|L{11.2cm}|}
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}Document Title} & \small PharmaZen Website --- Software Requirements Specification \\
+  \hline
+  \rowcolor{medgreen}\textbf{\small\color{darkgreen}Version} & \small 1.0 (Draft) \\
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}Prepared By} & \small Zunayed Iqbal Shaed (23524202028), Rudro Roy (23524202060), Ovizit Dutt (23524202118) \\
+  \hline
+  \rowcolor{medgreen}\textbf{\small\color{darkgreen}Review Date} & \small March 2026 \\
+  \hline
+  \rowcolor{lightgreen}\textbf{\small\color{darkgreen}Approval Status} & \small Pending Stakeholder Review \\
+  \hline
+\end{tabular}
+
+\vspace{14pt}
+\small\color{textgray}\textit{This document is subject to change management procedures. Any modifications must be reviewed, approved, and version-controlled. Changes will be tracked in the project change log.}
+
+\end{document}
