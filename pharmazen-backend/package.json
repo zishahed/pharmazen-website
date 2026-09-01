@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed": "node -r dotenv/config prisma/seed.js",
     "seed:admins": "node -r dotenv/config prisma/seed-admins.js",
-    "dev": "nodemon api/index.js"
+    "dev": "nodemon api/index.js",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
