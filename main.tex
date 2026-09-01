@@ -1,0 +1,96 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{enumitem}
+\geometry{margin=1in}
+\onehalfspacing
+
+\title{PharmaZen --- An E-Pharmacy Platform}
+\author{Zunayed Iqbal Shahed, Ovizit Dutt, Rudro Roy, Tasnim Rashid Medha}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+\section{Introduction}
+PharmaZen is a full-stack e-pharmacy web application that enables customers to browse and purchase medicines online. Built with React (Vite) on the frontend and Express.js with Prisma ORM on the backend, it supports user authentication, role-based access (customer, pharmacist, admin), medicine catalog with advanced filtering, cart management, prescription upload and review, bKash payment integration, and an admin dashboard. The database uses PostgreSQL via Neon serverless.
+
+\section{Security --- JWT, Helmet, and Rate Limiting}
+
+\subsection{JWT-Based Authentication}
+Authentication uses a dual-token JWT strategy. On login, the server generates:
+\begin{itemize}
+    \item \textbf{Access token} --- short-lived (15 minutes), stored in an httpOnly, SameSite=strict cookie. Used for API authorization via the \texttt{authenticate} middleware.
+    \item \textbf{Refresh token} --- long-lived (7 days), also httpOnly. Its SHA-256 hash is persisted in the \texttt{RefreshToken} table. On expiry or revocation, the client calls \texttt{POST /api/auth/refresh} to obtain a new token pair (token rotation).
+\end{itemize}
+Passwords are hashed with \texttt{bcryptjs} at 12 salt rounds. Three middlewares enforce auth: \texttt{authenticate} (required), \texttt{authorize(...roles)} (role guard), and \texttt{optionalAuth} (soft auth).
+
+\subsection{Helmet and Rate Limiting}
+The dependencies \texttt{helmet} (v8.1.0) and \texttt{express-rate-limit} (v8.2.1) are declared in \texttt{package.json} as planned security enhancements. Helmet sets secure HTTP headers (CSP, X-Frame-Options, etc.) to mitigate common web vulnerabilities. The intended rate-limit configuration is 100 requests per 15-minute window per IP for general API endpoints, and stricter limits of 5 requests per 15 minutes on auth endpoints to prevent brute-force attacks. These remain to be wired into the Express middleware stack.
+
+\section{Frontend React Components}
+The React application is organized under \texttt{pharmazen-frontend/src/}:
+
+\subsection{Context Providers}
+\texttt{AuthContext.jsx} manages user state (login, logout, register, role checks). \texttt{CartContext.jsx} manages cart state with localStorage for guests and backend sync for authenticated users. \texttt{AuthCartSync.jsx} merges the guest cart into the backend on login.
+
+\subsection{Common Components}
+\texttt{Header.jsx} (role-aware navigation, search, cart icon, profile menu), \texttt{Footer.jsx}, \texttt{Loader.jsx}, \texttt{ProtectedRoute.jsx} (route guard by roles), \texttt{MedicineCard.jsx} (price, stock, Rx badge, add-to-cart), \texttt{FiltersSidebar.jsx} (generic name, company, category, price range filters), \texttt{SearchableSelect.jsx}.
+
+\subsection{Pages}
+\texttt{HomePage}, \texttt{ProductsPage} (browse + filter + paginate), \texttt{LoginPage}, \texttt{RegisterPage}, \texttt{ProfilePage}, \texttt{CartPage}, \texttt{CheckoutPage} (bKash payment), \texttt{PaymentStatusPage}, \texttt{OrdersPage}, \texttt{PrescriptionsPage}, \texttt{PrescriptionUploadPage} (4-step wizard), \texttt{PrescriptionReviewPage} (split-panel review), \texttt{StaffRegistrationPage}, \texttt{AdminDashboard} (5 tabs: Dashboard, Medicines, Orders, Sales, Users), \texttt{UnauthorizedPage}.
+
+\section{Database Schema}
+The Prisma schema defines 10 models with the following relationships:
+
+\begin{itemize}[leftmargin=*,nosep]
+    \item \textbf{User} --- has many \texttt{RefreshToken}, \texttt{Prescription}, \texttt{Order}; has one \texttt{Cart}
+    \item \textbf{RefreshToken} --- belongs to \texttt{User} (cascade delete)
+    \item \textbf{Category} --- has many \texttt{Medicine}
+    \item \textbf{Medicine} --- belongs to \texttt{Category}; has many \texttt{CartItem}, \texttt{OrderItem}
+    \item \textbf{Cart} --- belongs to \texttt{User} (unique, cascade); has many \texttt{CartItem}
+    \item \textbf{CartItem} --- belongs to \texttt{Cart} and \texttt{Medicine}; unique on [cartId, medicineId]
+    \item \textbf{Prescription} --- belongs to \texttt{User} and optional reviewer (\texttt{User}); has many \texttt{PrescriptionFile}, \texttt{Order}
+    \item \textbf{PrescriptionFile} --- belongs to \texttt{Prescription} (cascade)
+    \item \textbf{Order} --- belongs to \texttt{User} and optional \texttt{Prescription}; has many \texttt{OrderItem}; has one \texttt{Payment}
+    \item \textbf{OrderItem} --- belongs to \texttt{Order} (cascade) and \texttt{Medicine}
+    \item \textbf{Payment} --- belongs to \texttt{Order} (unique)
+\end{itemize}
+
+\section{Prescription Flow}
+\begin{enumerate}
+    \item Customer uploads up to 4 files (JPG/PNG/PDF, max 10 MB each) via the 4-step wizard. Files are uploaded to Cloudinary in parallel.
+    \item A \texttt{Prescription} record is created with \texttt{status: pending}, linked to the user and chosen medicine.
+    \item Pharmacist/admin views pending prescriptions on \texttt{PrescriptionReviewPage}, reviews uploaded files, and approves or rejects with an optional note.
+    \item On approval, the prescription becomes usable in checkout. When an order contains prescription-required medicines, the backend validates an approved prescription exists with valid date range before allowing order creation.
+\end{enumerate}
+
+\section{Medicine Flow}
+The medicine catalog contains 21,700+ seeded real Bangladeshi medicines. Each medicine stores name, description (generic name, dosage form, strength, company), price, stock, and a prescription-required flag. Users search by name or filter by generic name, company, category, and price range (via slider). Results paginate at 20 items per page. Admin users can create, update, delete medicines and adjust stock through the AdminDashboard.
+
+\section{Order Flow}
+\begin{enumerate}
+    \item Items are added to the cart (max 5 per medicine). Guests use localStorage; authenticated users sync to the backend Cart table.
+    \item At checkout, the backend reads the cart, validates prescription-required items against approved prescriptions, calculates the total, creates the \texttt{Order} (status: pending) with \texttt{OrderItem} snapshots.
+    \item A bKash payment session is created (mock mode for development). On successful execution, \texttt{Payment} is marked \texttt{completed}, \texttt{Order.status} becomes \texttt{paid}, and medicine stock is decremented.
+    \item Customers view their order history on \texttt{OrdersPage}; admin sees all orders with filters in the dashboard. Unpaid orders can be cancelled.
+\end{enumerate}
+
+\section{Team Contributions}
+
+\begin{itemize}[leftmargin=*,nosep]
+    \item \textbf{Zunayed Iqbal Shahed} --- Database schema (Prisma models: User, RefreshToken, Category, Cart, CartItem, Payment, OrderItem); Express server setup, middleware (CORS, Helmet, rate-limit, cookie-parser); JWT auth utilities and password hashing; Auth module (register, login, logout, token refresh, staff creation); Frontend: AuthContext, ProtectedRoute, LoginPage, RegisterPage, StaffRegistrationPage, ProfilePage, AuthCartSync; API clients: authApi.js, axiosClient.js; Admin panel (full dashboard with tabs, CRUD, stats, sales analytics) and bKash mock payment service.
+
+    \item \textbf{Ovizit Dutt} --- Backend: Categories module (list); Medicine module (search, filter by generic/company, filter by category/price/prescription flag, pagination 20/page); Frontend: HomePage, ProductsPage, MedicineCard, FiltersSidebar, SearchableSelect; API client: medicinesApi.js.
+
+    \item \textbf{Rudro Roy} --- Backend: Cart module (add, update, remove, clear, max qty 5); Orders module (create from cart, list, cancel unpaid); Frontend: CartPage, CheckoutPage, PaymentStatusPage, OrdersPage, CartContext (guest localStorage + API sync); API clients: orderApi.js, paymentApi.js.
+
+    \item \textbf{Tasnim Rashid Medha} --- Frontend: PrescriptionsPage, PrescriptionUploadPage (4-step wizard), PrescriptionReviewPage (split panel), AdminDashboard (5 tabs); API clients: presApi.js, adminApi.js; Backend: Prescriptions module (Cloudinary upload, pharmacist review queue, approve/reject).
+\end{itemize}
+
+\end{document}

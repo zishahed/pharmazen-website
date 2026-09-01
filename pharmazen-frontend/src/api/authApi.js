@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://pharmazen-backend-lvsf48cys-shahed3.vercel.app/api/auth';
 
 // Create axios instance with credentials
 const api = axios.create({
