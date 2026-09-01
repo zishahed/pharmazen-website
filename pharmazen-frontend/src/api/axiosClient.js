@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://pharmazen-backend-lvsf48cys-shahed3.vercel.app/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://pharmazen-backend.vercel.app/api',
   withCredentials: true, // For future cookie-based auth
 });
 
