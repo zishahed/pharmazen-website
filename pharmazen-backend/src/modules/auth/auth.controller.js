@@ -1,6 +1,29 @@
 const authService = require('./auth.service');
 
 /**
+ * Cookie policy.
+ *
+ * vercel.app is on the Public Suffix List, so pharmazen.vercel.app and
+ * pharmazen-backend.vercel.app are separate sites and the browser will not send
+ * a SameSite=Strict cookie between them. With Strict, every authenticated call
+ * arrived with no credential at all and 401'd, while the UI still looked logged
+ * in because that state came from React rather than the server.
+ *
+ * SameSite=None is the only value that works cross-site, and browsers require
+ * Secure alongside it -- hence both are tied to production. On plain-http
+ * localhost, 'lax' keeps local development working.
+ */
+const isProduction = process.env.NODE_ENV === 'production';
+const cookieBase = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? 'none' : 'lax',
+};
+
+const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;
+const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+/**
  * Register a new user
  * POST /api/auth/register
  */
@@ -77,17 +100,13 @@ const login = async (req, res) => {
 
     // Set httpOnly cookies
     res.cookie('accessToken', result.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      ...cookieBase,
+      maxAge: ACCESS_COOKIE_MAX_AGE,
     });
 
     res.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      ...cookieBase,
+      maxAge: REFRESH_COOKIE_MAX_AGE,
     });
 
     res.json({
@@ -126,17 +145,13 @@ const refresh = async (req, res) => {
 
     // Set new cookies
     res.cookie('accessToken', result.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000,
+      ...cookieBase,
+      maxAge: ACCESS_COOKIE_MAX_AGE,
     });
 
     res.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      ...cookieBase,
+      maxAge: REFRESH_COOKIE_MAX_AGE,
     });
 
     res.json({
@@ -167,8 +182,10 @@ const logout = async (req, res) => {
     await authService.logout(refreshToken);
 
     // Clear cookies
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    // Options must match those used when setting, otherwise the browser keeps
+    // the original cookie and the "logout" silently does nothing.
+    res.clearCookie('accessToken', { ...cookieBase, path: '/' });
+    res.clearCookie('refreshToken', { ...cookieBase, path: '/' });
 
     res.json({
       success: true,

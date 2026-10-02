@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { authorizedFetch } from '../api/authFetch';
 
 const CartContext = createContext(null);
 
@@ -22,7 +23,7 @@ export const CartProvider = ({ children }) => {
 
   const fetchCart = useCallback(async (forceLogout = false) => {
     try {
-      const response = await fetch(`${API_BASE}/cart`, {
+      const response = await authorizedFetch(`${API_BASE}/cart`, {
         credentials: 'include'
       });
       if (response.ok) {
@@ -58,7 +59,7 @@ export const CartProvider = ({ children }) => {
 
   const syncLocalCartToBackend = async (localItems) => {
     try {
-      await fetch(`${API_BASE}/cart`, {
+      await authorizedFetch(`${API_BASE}/cart`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -68,7 +69,7 @@ export const CartProvider = ({ children }) => {
     
     for (const item of localItems) {
       try {
-        await fetch(`${API_BASE}/cart`, {
+        await authorizedFetch(`${API_BASE}/cart`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -84,7 +85,7 @@ export const CartProvider = ({ children }) => {
     const localItems = JSON.parse(localStorage.getItem('pharmazen_cart') || '[]');
     
     try {
-      const response = await fetch(`${API_BASE}/cart`, {
+      const response = await authorizedFetch(`${API_BASE}/cart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -131,7 +132,7 @@ export const CartProvider = ({ children }) => {
 
   const removeFromCart = useCallback(async (itemId) => {
     try {
-      const response = await fetch(`${API_BASE}/cart/${itemId}`, {
+      const response = await authorizedFetch(`${API_BASE}/cart/${itemId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -167,7 +168,7 @@ export const CartProvider = ({ children }) => {
     }
     
     try {
-      const response = await fetch(`${API_BASE}/cart`, {
+      const response = await authorizedFetch(`${API_BASE}/cart`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -198,7 +199,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = useCallback(async () => {
     try {
-      await fetch(`${API_BASE}/cart`, {
+      await authorizedFetch(`${API_BASE}/cart`, {
         method: 'DELETE',
         credentials: 'include'
       });

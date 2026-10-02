@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getCurrentUser, login as loginApi, logout as logoutApi, register as registerApi } from '../api/authApi';
+import {
+  clearAuth,
+  getAccessToken,
+  setAccessToken,
+  setStoredUser,
+} from '../utils/tokenStorage';
 
 const AuthContext = createContext(null);
 
@@ -23,12 +29,26 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkAuth = async () => {
+    // No stored token means there is nothing to validate: the auth cookie is
+    // not sent cross-site, so /me would only ever answer 401 here.
+    if (!getAccessToken()) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await getCurrentUser();
       if (response.success) {
         setUser(response.data.user);
+        setStoredUser(response.data.user);
+      } else {
+        clearAuth();
+        setUser(null);
       }
     } catch {
+      // An expired token is the normal case here, not an error worth surfacing.
+      clearAuth();
       setUser(null);
     } finally {
       setLoading(false);
@@ -40,6 +60,8 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       const response = await loginApi(credentials);
       if (response.success) {
+        setAccessToken(response.data.accessToken);
+        setStoredUser(response.data.user);
         setUser(response.data.user);
         loginCallbacks.current.forEach(cb => cb());
         return { success: true };
@@ -69,10 +91,14 @@ export const AuthProvider = ({ children }) => {
     try {
       logoutCallbacks.current.forEach(cb => cb());
       await logoutApi();
-      setUser(null);
-      setError(null);
     } catch (err) {
       console.error('Logout error:', err);
+    } finally {
+      // Clear unconditionally. If logoutApi failed, a still-valid token in
+      // storage would keep the session alive after the user asked to end it.
+      clearAuth();
+      setUser(null);
+      setError(null);
     }
   };
 

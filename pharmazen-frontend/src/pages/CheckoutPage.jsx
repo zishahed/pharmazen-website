@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import styles from './CheckoutPage.module.css';
+import { authorizedFetch } from '../api/authFetch';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://pharmazen-backend.vercel.app/api';
 
@@ -49,7 +50,7 @@ const CheckoutPage = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE}/orders`, {
+      const response = await authorizedFetch(`${API_BASE}/orders`, {
         method: 'POST',
         credentials: 'include'
       });
@@ -66,7 +67,7 @@ const CheckoutPage = () => {
 
       const order = result.data;
 
-      const paymentResponse = await fetch(`${API_BASE}/payments/create`, {
+      const paymentResponse = await authorizedFetch(`${API_BASE}/payments/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -80,7 +81,7 @@ const CheckoutPage = () => {
 
       const { paymentId, isMock } = paymentResult.data;
 
-      const executeResponse = await fetch(`${API_BASE}/payments/execute`, {
+      const executeResponse = await authorizedFetch(`${API_BASE}/payments/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
