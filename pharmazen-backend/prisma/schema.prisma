@@ -128,7 +128,9 @@ model Medicine {
 }
 
 model Generic {
-  genericId                        Int      @id @map("generic_id")
+  // Phase 3: sequence-backed so an admin creating a generic does not have to
+  // hand-pick a unique integer. Requires prisma/phase3-generics-autoincrement.sql.
+  genericId                        Int      @id @default(autoincrement()) @map("generic_id")
   genericName                      String   @unique @map("generic_name")
   slug                             String?
   monographLink                    String?  @map("monograph_link")

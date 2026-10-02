@@ -13,6 +13,7 @@ const paymentsRoutes = require('./modules/payments/payments.routes');
 const prescriptionsRoutes = require('./modules/prescriptions/prescriptions.routes');
 const adminRoutes = require('./modules/admin/admin.routes');
 const syncRoutes = require('./modules/sync/sync.routes');
+const genericsRoutes = require('./modules/generics/generics.routes');
 
 // Middleware
 app.use(cors({
@@ -37,5 +38,6 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/prescriptions', prescriptionsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/sync', syncRoutes);
+app.use('/api/generics', genericsRoutes);
 
 module.exports = app;

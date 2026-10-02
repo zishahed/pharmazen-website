@@ -14,4 +14,10 @@ router.patch('/users/:id/role', authenticate, authorize('admin'), adminControlle
 // The DELETE itself lives in medicines.routes.js with the other medicine CRUD.
 router.post('/medicines/:id/restore', authenticate, authorize('admin'), adminController.restoreMedicine);
 
+// Phase 3 — generics CRUD got the same soft delete, for a sharper reason: a hard
+// delete would hit ON DELETE SET NULL on medicines.generic_id and break every
+// device's generic resolution without emitting a medicine delta. The DELETE
+// itself lives in generics.routes.js with the other generics CRUD.
+router.post('/generics/:id/restore', authenticate, authorize('admin'), adminController.restoreGeneric);
+
 module.exports = router;

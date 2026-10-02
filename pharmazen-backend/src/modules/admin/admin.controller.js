@@ -1,5 +1,6 @@
 const prisma = require('../../utils/prisma');
 const medicinesService = require('../medicines/medicines.service');
+const genericsService = require('../generics/generics.service');
 
 async function getDashboardStats(req, res) {
   try {
@@ -323,4 +324,36 @@ async function restoreMedicine(req, res) {
   }
 }
 
-module.exports = { getDashboardStats, getAllOrders, getAllUsers, getSalesAnalytics, updateOrderStatus, updateUserRole, restoreMedicine };
+/**
+ * POST /api/admin/generics/:id/restore
+ * Reverse a Phase 3 soft delete.
+ *
+ * Same shape and placement as restoreMedicine, and for the same reason: the
+ * write lives in generics.service.js so there is one place that knows how a
+ * generic soft delete is represented. The id is parsed here rather than in the
+ * service because this module has no shared param helper and a bad segment must
+ * be a 400, not a Prisma P2025 in a 500.
+ */
+async function restoreGeneric(req, res) {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid generic id' });
+    }
+
+    const generic = await genericsService.restoreGeneric(id);
+    if (!generic) {
+      return res.status(404).json({ success: false, error: 'Generic not found' });
+    }
+    res.json({
+      success: true,
+      message: 'Generic restored successfully',
+      data: generic,
+    });
+  } catch (error) {
+    console.error('Error in restoreGeneric controller:', error);
+    res.status(500).json({ success: false, error: 'Failed to restore generic.' });
+  }
+}
+
+module.exports = { getDashboardStats, getAllOrders, getAllUsers, getSalesAnalytics, updateOrderStatus, updateUserRole, restoreMedicine, restoreGeneric };
