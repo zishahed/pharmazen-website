@@ -120,6 +120,10 @@ model Medicine {
   @@index([categoryId])
   @@index([genericId])
   @@index([updatedAt])
+  // Phase 2: composite index behind /api/sync keyset paging. Additive — the
+  // single-column updatedAt index is left in place rather than replaced, so
+  // this phase drops nothing. See prisma/phase2-sync-indexes.sql.
+  @@index([updatedAt, id])
   @@map("medicines")
 }
 
@@ -155,6 +159,8 @@ model Generic {
   @@index([drugClass])
   @@index([indication])
   @@index([updatedAt])
+  // Phase 2: composite index behind /api/sync keyset paging. See medicines.
+  @@index([updatedAt, genericId])
   @@map("generics")
 }
 
