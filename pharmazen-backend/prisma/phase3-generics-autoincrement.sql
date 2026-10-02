@@ -33,8 +33,10 @@
 --   insert, which reads like a data bug rather than a migration bug. If you
 --   ever regenerate this migration with Prisma, add the `setval` back.
 --
---   `false` as the third argument sets `is_called = false`, so the first
---   `nextval` returns exactly MAX(generic_id) + 1 = 2073 rather than 2074.
+--   `true` as the third argument sets `is_called = true`, which is what makes the
+--   next `nextval` return MAX(generic_id) + 1 = 2073. `false` is the intuitive
+--   looking choice and is wrong: it records that 2072 has not been handed out
+--   yet, so the next insert is given 2072 and violates the primary key.
 --
 -- SAFETY
 --   * No existing row is read, written or locked beyond the brief ACCESS SHARE
@@ -67,10 +69,13 @@ ALTER SEQUENCE "generics_generic_id_seq" OWNED BY "generics"."generic_id";
 
 -- Seed past every existing id. The one line Prisma omits. Idempotent: re-running
 -- re-reads MAX, so it is safe to repeat if a generic was created in between.
+--
+-- The third argument is the whole subtlety: `true` means "2072 has been handed
+-- out", so the next nextval is 2073. Do not "simplify" it to false.
 SELECT setval(
     'generics_generic_id_seq',
     GREATEST((SELECT COALESCE(MAX(generic_id), 0) FROM "generics"), 1),
-    false
+    true
 );
 
 
@@ -88,18 +93,30 @@ WHERE table_name = 'generics' AND column_name = 'generic_id';
 -- 2. The sequence is seeded past the data and owned by the column.
 --
 --    Expected: last_value = 2072 (or higher if generics were created since),
---    and is_owned_by = generics.generic_id. is_owned_by matters: without OWNED
---    BY, DROP TABLE generics would leave the sequence behind.
+--    and owned_by = public.generics_generic_id_seq. Ownership matters: without
+--    OWNED BY, DROP TABLE generics would leave the sequence behind.
+--
+--    The ownership check is pg_get_serial_sequence, not pg_sequences. There is
+--    no `is_owned_by` column on pg_sequences -- it exposes schemaname,
+--    sequencename, sequenceowner, data_type, start_value, min_value,
+--    max_value, increment_by, cycle, cache_size and last_value, and nothing
+--    else, so selecting `is_owned_by` from it errors out with
+--    `column "is_owned_by" does not exist`. pg_get_serial_sequence returns the
+--    owning sequence's qualified name, or NULL when the column has none, which
+--    is exactly the distinction being asserted.
 SELECT
-    (SELECT last_value    FROM generics_generic_id_seq) AS last_value,
-    (SELECT MAX(generic_id) FROM generics)               AS max_id,
-    (SELECT is_owned_by   FROM pg_sequences
-      WHERE sequencename = 'generics_generic_id_seq')    AS is_owned_by;
+    (SELECT last_value FROM generics_generic_id_seq) AS last_value,
+    (SELECT MAX(generic_id) FROM generics)           AS max_id,
+    pg_get_serial_sequence('generics', 'generic_id') AS owned_by;
 
 -- 3. The next id cannot collide.
 --
---    Expected: 2073 (or higher). This is the number the next created generic
---    will receive. It must be strictly greater than max_id above.
+--    Expected: 2073 (or higher). It must be strictly greater than max_id above.
+--
+--    Note this CONSUMES the value it prints: nextval hands it out and advances
+--    the sequence. Running this file therefore leaves the first real admin create
+--    on max_id + 2, not max_id + 1. That is harmless -- it is an arbitrary
+--    integer key -- but do not read 2073 here as "the id my create will get".
 SELECT nextval('generics_generic_id_seq') AS next_id;
 
 
@@ -107,7 +124,7 @@ SELECT nextval('generics_generic_id_seq') AS next_id;
 -- DEPLOY CHECKLIST for Phase 3
 -- ============================================================================
 --   [ ] VERIFY 1 shows a non-null column_default
---   [ ] VERIFY 2 shows last_value >= max_id and is_owned_by = generics.generic_id
+--   [ ] VERIFY 2 shows last_value >= max_id and owned_by = public.generics_generic_id_seq
 --   [ ] VERIFY 3 shows next_id > max_id
 --   [ ] GET  /api/generics                     -> 200, list excludes soft-deleted
 --   [ ] GET  /api/generics?includeDeleted=true -> 200, includes them
