@@ -3,9 +3,11 @@ const prisma = require('../../utils/prisma');
 /**
  * Shared visibility guard for every catalogue read path.
  *
- * Phase 1A: the column exists but nothing is soft-deleted yet, so this is a
- * no-op — it is deployed FIRST so that Phase 1B can enable the soft delete
- * without any read path lagging behind it. Do not remove.
+ * Phase 1A shipped this while nothing was soft-deleted, so it was inert then.
+ * Phase 1B makes it load-bearing: `deleteMedicine` now flips `is_deleted`
+ * instead of removing the row, and this filter is the only thing keeping those
+ * rows out of the catalogue. Do not remove, and do not add a medicine read
+ * path that omits it.
  */
 const NOT_DELETED = { isDeleted: false };
 
@@ -257,13 +259,86 @@ async function updateMedicine(id, data) {
   }
 }
 
+/**
+ * Soft delete a medicine (Phase 1B).
+ *
+ * This was `prisma.medicine.delete(...)`, which could not actually succeed for
+ * any medicine in use: `CartItem.medicine` and `OrderItem.medicine` declare no
+ * `onDelete`, so Postgres enforces RESTRICT, the FK blocks the delete, and the
+ * handler rethrew 'Failed to delete medicine'. Admins could not delete a sold
+ * medicine at all — the old 500 was a bug, not a guard.
+ *
+ * Flipping a flag removes that obstacle, so deletes now succeed everywhere.
+ * That is the intended improvement, but it is also why the cart write paths
+ * needed guarding (see cart.service.js): the FK was accidentally doing the
+ * work that `isDeleted` filters now do explicitly.
+ *
+ * The row is kept rather than removed because a `?since=` cursor can never
+ * observe a physically deleted row. A hard delete makes the deletion invisible
+ * to every device that already synced that medicine — they would keep serving
+ * it from their local SQLite copy forever. The flag is the change signal.
+ *
+ * Idempotent: a repeated DELETE reports success instead of throwing P2025, and
+ * the `isDeleted: false` guard means a repeat does not write at all — a no-op
+ * delete must not bump `updated_at`, or every retry becomes a sync delta for
+ * 21k clients.
+ *
+ * @param {String} id - Medicine UUID
+ * @returns {Object|null} The medicine, or null if no such id exists.
+ */
 async function deleteMedicine(id) {
   try {
-    await prisma.medicine.delete({ where: { id } });
-    return true;
+    await prisma.medicine.updateMany({
+      where: { id, ...NOT_DELETED },
+      data: { isDeleted: true },
+    });
+
+    // Read back separately so a missing id is distinguishable from an
+    // already-soft-deleted one, rather than inferred from the update count.
+    // Unfiltered on purpose: the restore endpoint and the admin edit form both
+    // need to resolve a soft-deleted medicine.
+    const medicine = await prisma.medicine.findUnique({
+      where: { id },
+      include: { category: true },
+    });
+
+    return medicine;
   } catch (error) {
-    console.error('Error deleting medicine:', error);
+    console.error('Error soft-deleting medicine:', error);
     throw new Error('Failed to delete medicine');
+  }
+}
+
+/**
+ * Reverse a soft delete (Phase 1B).
+ *
+ * Added because soft delete is now the only delete an admin has: the FK
+ * obstacle that used to make in-use medicines undeletable is gone, so a
+ * mis-click needs a way back that does not require hand-editing Neon.
+ *
+ * Idempotent in the same direction as delete — restoring a live medicine is a
+ * no-op that leaves `updated_at` alone. When it does write, the bumped
+ * `updated_at` is what resurfaces the medicine on already-synced devices.
+ *
+ * @param {String} id - Medicine UUID
+ * @returns {Object|null} The medicine, or null if no such id exists.
+ */
+async function restoreMedicine(id) {
+  try {
+    await prisma.medicine.updateMany({
+      where: { id, isDeleted: true },
+      data: { isDeleted: false },
+    });
+
+    const medicine = await prisma.medicine.findUnique({
+      where: { id },
+      include: { category: true },
+    });
+
+    return medicine;
+  } catch (error) {
+    console.error('Error restoring medicine:', error);
+    throw new Error('Failed to restore medicine');
   }
 }
 
@@ -290,5 +365,6 @@ module.exports = {
   createMedicine,
   updateMedicine,
   deleteMedicine,
+  restoreMedicine,
   updateStock,
 };

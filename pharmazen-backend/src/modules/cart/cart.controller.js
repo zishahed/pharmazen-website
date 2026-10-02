@@ -42,7 +42,10 @@ async function addToCart(req, res) {
     });
   } catch (error) {
     console.error('Error in addToCart controller:', error);
-    res.status(500).json({
+    // `error.status` carries 404 for a stale reference to a soft-deleted
+    // medicine (see cart.service.assertMedicineAvailable). Without it that
+    // would be reported as a 500 and read as an outage.
+    res.status(error.status || 500).json({
       success: false,
       error: error.message || 'Failed to add item to cart'
     });
@@ -69,9 +72,9 @@ async function updateCartItem(req, res) {
     });
   } catch (error) {
     console.error('Error in updateCartItem controller:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
-      error: 'Failed to update cart item'
+      error: error.message || 'Failed to update cart item'
     });
   }
 }

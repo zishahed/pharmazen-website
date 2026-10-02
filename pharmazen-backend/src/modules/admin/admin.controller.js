@@ -1,4 +1,5 @@
 const prisma = require('../../utils/prisma');
+const medicinesService = require('../medicines/medicines.service');
 
 async function getDashboardStats(req, res) {
   try {
@@ -296,4 +297,30 @@ async function getSalesAnalytics(req, res) {
   }
 }
 
-module.exports = { getDashboardStats, getAllOrders, getAllUsers, getSalesAnalytics, updateOrderStatus, updateUserRole };
+/**
+ * POST /api/admin/medicines/:id/restore
+ * Reverse a Phase 1B soft delete.
+ *
+ * Mounted under /api/admin, not /api/medicines, because that is the prefix
+ * SYNC.md specifies for this endpoint. The write itself lives in
+ * medicines.service.js with the rest of the medicine mutations, so there is
+ * still exactly one place that knows how a soft delete is represented.
+ */
+async function restoreMedicine(req, res) {
+  try {
+    const medicine = await medicinesService.restoreMedicine(req.params.id);
+    if (!medicine) {
+      return res.status(404).json({ success: false, error: 'Medicine not found' });
+    }
+    res.json({
+      success: true,
+      message: 'Medicine restored successfully',
+      data: medicine,
+    });
+  } catch (error) {
+    console.error('Error in restoreMedicine controller:', error);
+    res.status(500).json({ success: false, error: 'Failed to restore medicine.' });
+  }
+}
+
+module.exports = { getDashboardStats, getAllOrders, getAllUsers, getSalesAnalytics, updateOrderStatus, updateUserRole, restoreMedicine };

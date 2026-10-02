@@ -130,10 +130,25 @@ async function updateMedicine(req, res) {
   }
 }
 
+/**
+ * DELETE /api/medicines/:id
+ * Soft delete a medicine.
+ *
+ * The `data` key is additive — the website's admin UI reads `success` only, so
+ * this response shape is unchanged for it. It is here so an admin console can
+ * confirm which row was affected, since the delete is now reversible.
+ */
 async function deleteMedicine(req, res) {
   try {
-    await medicinesService.deleteMedicine(req.params.id);
-    res.json({ success: true, message: 'Medicine deleted successfully' });
+    const medicine = await medicinesService.deleteMedicine(req.params.id);
+    if (!medicine) {
+      return res.status(404).json({ success: false, error: 'Medicine not found' });
+    }
+    res.json({
+      success: true,
+      message: 'Medicine deleted successfully',
+      data: medicine,
+    });
   } catch (error) {
     console.error('Error in deleteMedicine controller:', error);
     res.status(500).json({ success: false, error: 'Failed to delete medicine.' });

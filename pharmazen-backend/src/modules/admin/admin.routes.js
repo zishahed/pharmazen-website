@@ -10,4 +10,8 @@ router.get('/sales', authenticate, authorize('admin'), adminController.getSalesA
 router.patch('/orders/:id/status', authenticate, authorize('admin'), adminController.updateOrderStatus);
 router.patch('/users/:id/role', authenticate, authorize('admin'), adminController.updateUserRole);
 
+// Phase 1B — deleteMedicine is now a soft delete, so every delete needs a way back.
+// The DELETE itself lives in medicines.routes.js with the other medicine CRUD.
+router.post('/medicines/:id/restore', authenticate, authorize('admin'), adminController.restoreMedicine);
+
 module.exports = router;

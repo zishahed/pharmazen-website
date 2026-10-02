@@ -26,7 +26,8 @@ router.post('/', authenticate, authorize('admin'), medicinesController.createMed
 // PUT /api/medicines/:id - Update a medicine
 router.put('/:id', authenticate, authorize('admin'), medicinesController.updateMedicine);
 
-// DELETE /api/medicines/:id - Delete a medicine
+// DELETE /api/medicines/:id - Soft delete a medicine (Phase 1B).
+// Reversible via POST /api/admin/medicines/:id/restore.
 router.delete('/:id', authenticate, authorize('admin'), medicinesController.deleteMedicine);
 
 // PATCH /api/medicines/:id/stock - Update stock quantity

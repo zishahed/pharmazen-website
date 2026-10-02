@@ -107,8 +107,9 @@ model Medicine {
   // updated_at is the ?since= cursor for /api/sync. @default(now()) is
   // required so pre-existing rows get a non-null bootstrap value.
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
-  // Phase 1A only: the column exists and every read path filters on it, but
-  // deleteMedicine is still a hard delete. Phase 1B switches it over.
+  // Phase 1B: deleteMedicine flips this flag instead of removing the row, so a
+  // `?since=` cursor can observe a deletion. Restore via
+  // POST /api/admin/medicines/:id/restore.
   isDeleted        Boolean  @default(false) @map("is_deleted")
 
   category   Category    @relation(fields: [categoryId], references: [id])
