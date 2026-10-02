@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://pharmazen-backend.vercel.app/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 'https://pharmazen-backend.vercel.app/api';
 
 export const registerStaff = async (staffData) => {
   try {

@@ -5,7 +5,39 @@ import Footer from '../components/common/Footer';
 import { useAuth } from '../context/AuthContext';
 import { getRestrictedMedicines } from '../api/medicinesApi';
 import { uploadPrescription } from '../api/presApi';
+import { compressImage } from '../utils/imageCompression';
 import styles from './PrescriptionUploadPage.module.css';
+
+// Vercel rejects a request body over ~4.5MB before the function runs, so the
+// whole selection must stay under that. Two compressed files leave room for the
+// form fields around them.
+const MAX_FILES = 2;
+const MAX_FILE_BYTES = 2 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 4 * 1024 * 1024;
+
+/**
+ * Both a Vercel 413 and a blocked cross-origin request arrive as errors with no
+ * usable `response.data.error`, which is why this used to collapse into one
+ * generic message.
+ */
+const describeUploadError = (err) => {
+  const status = err.response?.status;
+
+  if (status === 413) {
+    return 'That image is too large to upload (4MB limit). Please try a smaller photo.';
+  }
+  if (status === 401 || status === 403) {
+    return 'Your session has expired. Please sign in and try again.';
+  }
+  if (!err.response) {
+    return 'Could not reach the server. Check your connection and try again.';
+  }
+  return (
+    err.response?.data?.error ||
+    err.response?.data?.message ||
+    'Failed to upload prescription. Please try again.'
+  );
+};
 
 const PrescriptionUploadPage = () => {
   const navigate = useNavigate();
@@ -85,15 +117,25 @@ const PrescriptionUploadPage = () => {
         errorMsg = 'Only JPG, PNG, and PDF files are allowed';
         continue;
       }
-      if (file.size > 10 * 1024 * 1024) {
-        errorMsg = 'Each file must be less than 10MB';
+      if (file.size > MAX_FILE_BYTES) {
+        errorMsg =
+          'Each file must be under 2MB. Photos are compressed automatically when you upload.';
         continue;
       }
       validFiles.push(file);
     }
 
-    if (prescriptionFiles.length + validFiles.length > 4) {
-      setError('Maximum 4 files allowed');
+    if (prescriptionFiles.length + validFiles.length > MAX_FILES) {
+      setError(`Maximum ${MAX_FILES} files allowed`);
+      return;
+    }
+
+    const projectedTotal = [...prescriptionFiles, ...validFiles].reduce(
+      (sum, file) => sum + file.size,
+      0
+    );
+    if (projectedTotal > MAX_TOTAL_BYTES) {
+      setError('Those files are too large in total. Please select fewer files.');
       return;
     }
 
@@ -169,7 +211,13 @@ const PrescriptionUploadPage = () => {
 
     try {
       const formData = new FormData();
-      prescriptionFiles.forEach((file) => {
+      // Compress before sending: a raw phone photo can exceed Vercel's request
+      // body limit on its own, and the backend never runs well enough to
+      // reject it with a useful message.
+      const preparedFiles = await Promise.all(
+        prescriptionFiles.map((file) => compressImage(file))
+      );
+      preparedFiles.forEach((file) => {
         formData.append('files', file);
       });
       formData.append('medicineId', selectedMedicine.id);
@@ -185,7 +233,7 @@ const PrescriptionUploadPage = () => {
       setSuccess('Prescription uploaded successfully!');
       setTimeout(() => navigate('/prescriptions'), 2000);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to upload prescription. Please try again.');
+      setError(describeUploadError(err));
     } finally {
       setUploading(false);
     }
@@ -257,7 +305,7 @@ const PrescriptionUploadPage = () => {
                         </button>
                       </div>
                     ))}
-                    {prescriptionFiles.length < 4 && (
+                    {prescriptionFiles.length < MAX_FILES && (
                       <div
                         className={styles.addMoreBtn}
                         onClick={(e) => {

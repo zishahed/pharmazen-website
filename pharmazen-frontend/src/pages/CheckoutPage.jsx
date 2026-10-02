@@ -6,7 +6,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import styles from './CheckoutPage.module.css';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://pharmazen-backend.vercel.app/api';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();

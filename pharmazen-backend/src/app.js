@@ -16,8 +16,24 @@ const syncRoutes = require('./modules/sync/sync.routes');
 const genericsRoutes = require('./modules/generics/generics.routes');
 
 // Middleware
+// CORS accepts an explicit allowlist. A single FRONTEND_URL made every other
+// origin -- localhost, Vercel previews -- fail at the network layer, which the
+// browser reports only as "Failed to fetch" with no CORS detail in the console.
+// Add origins via FRONTEND_URLS (comma-separated) rather than editing code.
+const allowedOrigins = (
+  process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173'
+)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin(origin, callback) {
+    // No Origin header: curl, the mobile app, server-to-server calls.
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`Origin not allowed by CORS: ${origin}`));
+  },
   credentials: true
 }));
 app.use(express.json());
