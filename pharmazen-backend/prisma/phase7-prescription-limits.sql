@@ -178,14 +178,31 @@ WHERE conname = 'order_items_prescription_id_fkey';
 
 -- 3. The backfill attributed lines.
 --
---    Expected: attributed = 8 (the restricted lines behind the 8 historical
---    order links), unattributed_sensitive = 0.
+--    attributed = 9, not 8. orders.prescription_id holds a single id, so an
+--    order containing two restricted medicines records only the last one.
+--    Attributing per order_item recovers the line the singular column dropped,
+--    which is the whole reason this column exists. Two such orders are in the
+--    data, so 9 lines legitimately sit behind 8 links. Fewer than 9 means the
+--    backfill is incomplete.
+--
+--    unattributed_sensitive = 4 is also correct, not a failure: all four are
+--    restricted lines in orders that never carried a prescription_id at all,
+--    bought before the gate existed. There is nothing truthful to attribute
+--    them to. So the count that must be zero is genuine_misses -- a restricted
+--    line sitting in an order that did carry a prescription link.
 SELECT
     (SELECT count(*)::int FROM "order_items" WHERE "prescription_id" IS NOT NULL) AS attributed,
     (SELECT count(*)::int
        FROM "order_items" oi
+       JOIN "orders" o ON o."id" = oi."order_id"
        JOIN "medicines" m ON m."id" = oi."medicine_id"
-      WHERE m."is_sensitive" AND oi."prescription_id" IS NULL) AS unattributed_sensitive;
+      WHERE m."is_sensitive" AND oi."prescription_id" IS NULL) AS unattributed_sensitive,
+    (SELECT count(*)::int
+       FROM "order_items" oi
+       JOIN "orders" o ON o."id" = oi."order_id"
+       JOIN "medicines" m ON m."id" = oi."medicine_id"
+      WHERE m."is_sensitive" AND oi."prescription_id" IS NULL
+        AND o."prescription_id" IS NOT NULL) AS genuine_misses;
 
 -- 4. No NULL counters survived.
 --
@@ -197,7 +214,12 @@ WHERE "max_quantity" IS NULL OR "consumed_quantity" IS NULL;
 
 -- ============================================================================
 -- DEPLOY CHECKLIST for Phase 7b
--- ============================================================================
+--
+--   Most of this is automated: node prisma/verify-phase7b.js --yes runs 22
+--   checks against the deployed API and removes its own fixture. Run it after
+--   deploying. The list below is what it covers, kept for when you want to see
+--   each case by hand.
+--
 --   [ ] VERIFY 1..4 as above
 --   [ ] PUT  /api/prescriptions/:id/review {status:'approved', maxQuantity:30} -> 200, maxQuantity 30
 --   [ ] PUT  same with maxQuantity:0 or -5                    -> 400, not a silent 0
