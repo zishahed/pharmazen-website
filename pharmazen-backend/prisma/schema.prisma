@@ -39,18 +39,18 @@ enum PaymentRecordStatus {
 }
 
 model User {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name         String
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  role         Role      @default(customer)
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(customer)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  refreshTokens  RefreshToken[]
-  prescriptions  Prescription[]
-  orders         Order[]
-  cart           Cart?
+  refreshTokens         RefreshToken[]
+  prescriptions         Prescription[]
+  orders                Order[]
+  cart                  Cart?
   reviewedPrescriptions Prescription[] @relation("ReviewedBy")
 
   @@index([email])
@@ -59,7 +59,7 @@ model User {
 
 model RefreshToken {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String   @db.Uuid @map("user_id")
+  userId    String   @map("user_id") @db.Uuid
   tokenHash String   @map("token_hash")
   isRevoked Boolean  @default(false) @map("is_revoked")
   expiresAt DateTime @map("expires_at")
@@ -72,42 +72,101 @@ model RefreshToken {
 }
 
 model Category {
-  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name     String     @unique
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String     @unique
   medicines Medicine[]
 
   @@map("categories")
 }
 
 model Medicine {
-  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                 String
   description          String?
-  categoryId           String   @db.Uuid @map("category_id")
-  price                Decimal  @db.Decimal(10, 2)
-  stockQuantity        Int      @map("stock_quantity")
+  categoryId           String    @map("category_id") @db.Uuid
+  price                Decimal   @db.Decimal(10, 2)
+  stockQuantity        Int       @map("stock_quantity")
   expiryDate           DateTime? @map("expiry_date") @db.Date
-  requiresPrescription Boolean  @default(false) @map("requires_prescription")
-  createdAt            DateTime @default(now()) @map("created_at")
+  requiresPrescription Boolean   @default(false) @map("requires_prescription")
+  createdAt            DateTime  @default(now()) @map("created_at")
+
+  // ── Sync columns (Phase 1A) ──────────────────────────────────────────────
+  // generic_id mirrors the app's SQLite `generics.generic_id`, so the mobile
+  // client can resolve a brand -> generic FK without string matching.
+  genericId        Int?     @map("generic_id")
+  slug             String?
+  type             String?
+  dosageForm       String?  @map("dosage_form")
+  strength         String?
+  manufacturer     String?
+  // package_container is informational only: price is NOT synced, and the
+  // client keeps its own local copy of the packaged string.
+  packageContainer String?  @map("package_container")
+  packageSize      String?  @map("package_size")
+  isSensitive      Boolean  @default(false) @map("is_sensitive")
+  // updated_at is the ?since= cursor for /api/sync. @default(now()) is
+  // required so pre-existing rows get a non-null bootstrap value.
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+  // Phase 1A only: the column exists and every read path filters on it, but
+  // deleteMedicine is still a hard delete. Phase 1B switches it over.
+  isDeleted        Boolean  @default(false) @map("is_deleted")
 
   category   Category    @relation(fields: [categoryId], references: [id])
+  generic    Generic?    @relation(fields: [genericId], references: [genericId])
   cartItems  CartItem[]
   orderItems OrderItem[]
 
   @@index([categoryId])
+  @@index([genericId])
+  @@index([updatedAt])
   @@map("medicines")
+}
+
+model Generic {
+  genericId                        Int      @id @map("generic_id")
+  genericName                      String   @unique @map("generic_name")
+  slug                             String?
+  monographLink                    String?  @map("monograph_link")
+  drugClass                        String?  @map("drug_class")
+  indication                       String?
+  indicationDescription            String?  @map("indication_description")
+  therapeuticClassDescription      String?  @map("therapeutic_class_description")
+  pharmacologyDescription          String?  @map("pharmacology_description")
+  dosageDescription                String?  @map("dosage_description")
+  administrationDescription        String?  @map("administration_description")
+  interactionDescription           String?  @map("interaction_description")
+  contraindicationsDescription     String?  @map("contraindications_description")
+  sideEffectsDescription           String?  @map("side_effects_description")
+  pregnancyAndLactationDescription String?  @map("pregnancy_and_lactation_description")
+  precautionsDescription           String?  @map("precautions_description")
+  pediatricUsageDescription        String?  @map("pediatric_usage_description")
+  overdoseEffectsDescription       String?  @map("overdose_effects_description")
+  durationOfTreatmentDescription   String?  @map("duration_of_treatment_description")
+  reconstitutionDescription        String?  @map("reconstitution_description")
+  storageConditionsDescription     String?  @map("storage_conditions_description")
+  descriptionsCount                Int      @default(0) @map("descriptions_count")
+  createdAt                        DateTime @default(now()) @map("created_at")
+  updatedAt                        DateTime @default(now()) @updatedAt @map("updated_at")
+  isDeleted                        Boolean  @default(false) @map("is_deleted")
+
+  medicines Medicine[]
+
+  @@index([drugClass])
+  @@index([indication])
+  @@index([updatedAt])
+  @@map("generics")
 }
 
 model Prescription {
   id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String             @db.Uuid @map("user_id")
-  medicineId   String             @db.Uuid @map("medicine_id")
+  userId       String             @map("user_id") @db.Uuid
+  medicineId   String             @map("medicine_id") @db.Uuid
   medicineName String             @map("medicine_name")
   startDate    DateTime           @map("start_date") @db.Date
   endDate      DateTime           @map("end_date") @db.Date
   comment      String?
   status       PrescriptionStatus @default(pending)
-  reviewedBy   String?            @db.Uuid @map("reviewed_by")
+  reviewedBy   String?            @map("reviewed_by") @db.Uuid
   reviewNote   String?            @map("review_note")
   createdAt    DateTime           @default(now()) @map("created_at")
 
@@ -121,11 +180,11 @@ model Prescription {
 }
 
 model PrescriptionFile {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  prescriptionId String       @map("prescription_id") @db.Uuid
-  fileUrl        String       @map("file_url")
-  cloudinaryId   String       @map("cloudinary_public_id")
-  createdAt      DateTime     @default(now()) @map("created_at")
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prescriptionId String   @map("prescription_id") @db.Uuid
+  fileUrl        String   @map("file_url")
+  cloudinaryId   String   @map("cloudinary_public_id")
+  createdAt      DateTime @default(now()) @map("created_at")
 
   prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
 
@@ -134,8 +193,8 @@ model PrescriptionFile {
 }
 
 model Cart {
-  id     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId String     @unique @db.Uuid @map("user_id")
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @unique @map("user_id") @db.Uuid
 
   user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items CartItem[]
@@ -144,9 +203,9 @@ model Cart {
 }
 
 model CartItem {
-  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  cartId     String  @db.Uuid @map("cart_id")
-  medicineId String  @db.Uuid @map("medicine_id")
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cartId     String @map("cart_id") @db.Uuid
+  medicineId String @map("medicine_id") @db.Uuid
   quantity   Int
 
   cart     Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
@@ -158,11 +217,11 @@ model CartItem {
 
 model Order {
   id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId         String        @db.Uuid @map("user_id")
-  totalAmount    Decimal       @db.Decimal(10, 2) @map("total_amount")
+  userId         String        @map("user_id") @db.Uuid
+  totalAmount    Decimal       @map("total_amount") @db.Decimal(10, 2)
   status         OrderStatus   @default(pending)
   paymentStatus  PaymentStatus @default(unpaid) @map("payment_status")
-  prescriptionId String?       @db.Uuid @map("prescription_id")
+  prescriptionId String?       @map("prescription_id") @db.Uuid
   createdAt      DateTime      @default(now()) @map("created_at")
 
   user         User          @relation(fields: [userId], references: [id])
@@ -176,10 +235,10 @@ model Order {
 
 model OrderItem {
   id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  orderId         String  @db.Uuid @map("order_id")
-  medicineId      String  @db.Uuid @map("medicine_id")
+  orderId         String  @map("order_id") @db.Uuid
+  medicineId      String  @map("medicine_id") @db.Uuid
   quantity        Int
-  priceAtPurchase Decimal @db.Decimal(10, 2) @map("price_at_purchase")
+  priceAtPurchase Decimal @map("price_at_purchase") @db.Decimal(10, 2)
 
   order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   medicine Medicine @relation(fields: [medicineId], references: [id])
@@ -189,7 +248,7 @@ model OrderItem {
 
 model Payment {
   id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  orderId        String              @unique @db.Uuid @map("order_id")
+  orderId        String              @unique @map("order_id") @db.Uuid
   bkashPaymentId String              @unique @map("bkash_payment_id")
   transactionId  String              @unique @map("transaction_id")
   amount         Decimal             @db.Decimal(10, 2)

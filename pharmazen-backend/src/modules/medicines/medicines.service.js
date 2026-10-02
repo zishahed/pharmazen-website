@@ -1,5 +1,13 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../../utils/prisma');
+
+/**
+ * Shared visibility guard for every catalogue read path.
+ *
+ * Phase 1A: the column exists but nothing is soft-deleted yet, so this is a
+ * no-op — it is deployed FIRST so that Phase 1B can enable the soft delete
+ * without any read path lagging behind it. Do not remove.
+ */
+const NOT_DELETED = { isDeleted: false };
 
 /**
  * Get medicines with filters, search, and pagination
@@ -13,7 +21,7 @@ async function getMedicines(params) {
   const hasFilters = !!(genericName || company || categoryId || minPrice || maxPrice || search || requiresPrescription !== undefined);
 
   // Build where clause
-  const where = {};
+  const where = { ...NOT_DELETED };
 
   // Search by medicine name
   if (search) {
@@ -94,6 +102,7 @@ async function getMedicines(params) {
 async function getMaxPrice() {
   try {
     const result = await prisma.medicine.aggregate({
+      where: NOT_DELETED,
       _max: {
         price: true,
       },
@@ -115,6 +124,7 @@ async function getFilterOptions() {
   try {
     // Get all medicines with descriptions
     const medicines = await prisma.medicine.findMany({
+      where: NOT_DELETED,
       select: {
         description: true,
       },
@@ -163,6 +173,7 @@ async function getRestrictedMedicines(search) {
   try {
     const where = {
       requiresPrescription: true,
+      ...NOT_DELETED,
     };
 
     if (search) {
@@ -189,6 +200,9 @@ async function getRestrictedMedicines(search) {
 
 async function getMedicineById(id) {
   try {
+    // Intentionally NOT filtered by isDeleted. This route is admin-only, and
+    // Phase 1B needs it to keep resolving a soft-deleted medicine so the
+    // restore endpoint and the edit form still work on one.
     const medicine = await prisma.medicine.findUnique({
       where: { id },
       include: { category: true },

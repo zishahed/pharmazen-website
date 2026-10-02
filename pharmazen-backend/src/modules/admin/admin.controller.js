@@ -1,14 +1,16 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../../utils/prisma');
 
 async function getDashboardStats(req, res) {
   try {
     const [totalMedicines, totalOrders, totalUsers, pendingPrescriptions, lowStockCount] = await Promise.all([
-      prisma.medicine.count(),
+      // Catalogue counts exclude soft-deleted rows. The sales analytics further
+      // down deliberately does NOT filter: order history must survive a
+      // soft delete, and OrderItem.priceAtPurchase is the record of truth.
+      prisma.medicine.count({ where: { isDeleted: false } }),
       prisma.order.count(),
       prisma.user.count(),
       prisma.prescription.count({ where: { status: 'pending' } }),
-      prisma.medicine.count({ where: { stockQuantity: { lte: 10 } } }),
+      prisma.medicine.count({ where: { isDeleted: false, stockQuantity: { lte: 10 } } }),
     ]);
 
     const revenueResult = await prisma.payment.aggregate({

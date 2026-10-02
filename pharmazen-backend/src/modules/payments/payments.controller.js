@@ -1,4 +1,5 @@
 const paymentsService = require('./payments.service');
+const prisma = require('../../utils/prisma');
 
 const createPayment = async (req, res) => {
   try {
@@ -118,9 +119,6 @@ const getPaymentStatus = async (req, res) => {
       });
     }
 
-    const order = await require('@prisma/client').PrismaClient.prototype.$connect();
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
     const orderData = await prisma.order.findUnique({
       where: { id: orderId, userId },
     });

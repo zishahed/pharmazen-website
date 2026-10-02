@@ -1,6 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const prisma = require('../../utils/prisma');
 
 const MAX_QUANTITY = 5;
 
@@ -9,6 +7,7 @@ const createOrderFromCart = async (userId) => {
     where: { userId },
     include: {
       items: {
+        where: { medicine: { isDeleted: false } },
         include: {
           medicine: true,
         },

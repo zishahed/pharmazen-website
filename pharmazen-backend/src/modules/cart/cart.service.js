@@ -1,13 +1,20 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../../utils/prisma');
 
 const MAX_QUANTITY = 5;
 
+/**
+ * Soft-deleted medicines are filtered out of the cart rather than surfaced as
+ * unavailable. Phase 1B must pair this with a reconciliation query for carts
+ * that still reference a soft-deleted medicine, otherwise a live cart can
+ * silently shrink at checkout (see orders.service.createOrderFromCart, which
+ * applies the same filter so the two paths can never disagree).
+ */
 async function getCart(userId) {
   const cart = await prisma.cart.findUnique({
     where: { userId },
     include: {
       items: {
+        where: { medicine: { isDeleted: false } },
         include: {
           medicine: {
             select: {

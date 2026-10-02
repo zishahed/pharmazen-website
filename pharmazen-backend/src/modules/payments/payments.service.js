@@ -1,7 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
 const bkashService = require('../../services/bkash/bkash.service');
-
-const prisma = new PrismaClient();
+const prisma = require('../../utils/prisma');
 
 const createPaymentSession = async (userId, orderId, amount) => {
   const order = await prisma.order.findUnique({
