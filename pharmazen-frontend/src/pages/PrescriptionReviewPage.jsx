@@ -16,6 +16,10 @@ const PrescriptionReviewPage = () => {
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [reviewNote, setReviewNote] = useState('');
+  // Phase 7b: units the pharmacist authorises. Seeded from the prescription's
+  // own default when one is opened, so the number is always explicit rather than
+  // an invisible server fallback.
+  const [maxQuantity, setMaxQuantity] = useState('');
   const [reviewing, setReviewing] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState('');
 
@@ -47,9 +51,13 @@ const PrescriptionReviewPage = () => {
     setSelectedPrescription(null);
     setReviewNote('');
     setReviewSuccess('');
+    setMaxQuantity('');
     try {
       const response = await getPrescriptionById(id);
       setSelectedPrescription(response.data.data);
+      // Phase 7b: pre-fill the current limit so the pharmacist edits a known
+      // value instead of retyping it, and so the field never reads as blank.
+      setMaxQuantity(String(response.data.data?.maxQuantity ?? ''));
     } catch (err) {
       console.error('Error fetching prescription details:', err);
       setError('Failed to load prescription details.');
@@ -66,6 +74,9 @@ const PrescriptionReviewPage = () => {
       await reviewPrescription(selectedPrescription.id, {
         status,
         reviewNote: reviewNote || undefined,
+        ...(status === 'approved' && maxQuantity !== ''
+          ? { maxQuantity: Number(maxQuantity) }
+          : {}),
       });
       setReviewSuccess(`Prescription ${status} successfully!`);
       setPendingPrescriptions((prev) => prev.filter((p) => p.id !== selectedPrescription.id));
@@ -73,6 +84,7 @@ const PrescriptionReviewPage = () => {
         setSelectedPrescription(null);
         setReviewSuccess('');
         setReviewNote('');
+        setMaxQuantity('');
       }, 1500);
     } catch (err) {
       console.error('Error reviewing prescription:', err);
@@ -259,6 +271,27 @@ const PrescriptionReviewPage = () => {
                         ))}
                       </div>
                       <p className={styles.downloadHint}>Download and verify the prescription files against the requested medicine and duration</p>
+                    </div>
+
+                    <div className={styles.reviewSection}>
+                      <h3 className={styles.infoGroupTitle}>Authorised quantity</h3>
+                      <input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        inputMode="numeric"
+                        className={styles.limitInput}
+                        placeholder="Units the patient may take"
+                        value={maxQuantity}
+                        onChange={(e) => setMaxQuantity(e.target.value)}
+                      />
+                      <p className={styles.limitHint}>
+                        Total units of {selectedPrescription.medicineName} this approval allows,
+                        across all orders until {formatDate(selectedPrescription.endDate)}.
+                        {selectedPrescription.consumedQuantity > 0 &&
+                          ` Already dispensed: ${selectedPrescription.consumedQuantity}.`}
+                        {' '}Leave blank to allow {selectedPrescription.maxQuantity}.
+                      </p>
                     </div>
 
                     <div className={styles.reviewSection}>

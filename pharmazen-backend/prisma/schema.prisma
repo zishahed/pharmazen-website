@@ -174,15 +174,22 @@ model Prescription {
   startDate    DateTime           @map("start_date") @db.Date
   endDate      DateTime           @map("end_date") @db.Date
   comment      String?
-  status       PrescriptionStatus @default(pending)
+status       PrescriptionStatus @default(pending)
   reviewedBy   String?            @map("reviewed_by") @db.Uuid
   reviewNote   String?            @map("review_note")
-  createdAt    DateTime           @default(now()) @map("created_at")
+  // Phase 7b: the pharmacist sets maxQuantity when approving, and
+  // consumedQuantity accumulates as orders dispense against it. Units, not
+  // orders: a prescription is a course of treatment a patient may split across
+  // several orders. See prisma/phase7-prescription-limits.sql.
+  maxQuantity      Int @default(5) @map("max_quantity")
+  consumedQuantity Int @default(0) @map("consumed_quantity")
+  createdAt        DateTime @default(now()) @map("created_at")
 
-  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer User?              @relation("ReviewedBy", fields: [reviewedBy], references: [id])
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User?            @relation("ReviewedBy", fields: [reviewedBy], references: [id])
   orders   Order[]
   files    PrescriptionFile[]
+  orderItems OrderItem[]
 
   @@index([userId])
   @@map("prescriptions")
@@ -248,10 +255,16 @@ model OrderItem {
   medicineId      String  @map("medicine_id") @db.Uuid
   quantity        Int
   priceAtPurchase Decimal @map("price_at_purchase") @db.Decimal(10, 2)
+  // Phase 7b: which prescription authorised these units. Needed so a cancelled
+  // order can return them to the right prescription, and so an order records
+  // every authorising prescription rather than only the last one.
+  prescriptionId String?       @map("prescription_id") @db.Uuid
 
-  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  medicine Medicine @relation(fields: [medicineId], references: [id])
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  medicine     Medicine      @relation(fields: [medicineId], references: [id])
+  prescription Prescription? @relation(fields: [prescriptionId], references: [id])
 
+  @@index([prescriptionId])
   @@map("order_items")
 }
 

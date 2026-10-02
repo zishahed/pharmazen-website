@@ -12,9 +12,15 @@ const createOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('Create order error:', error);
-    res.status(500).json({
+    // Phase 7b: honour error.status so a rejected checkout answers 409 instead of
+    // 500. Defaults to 500, so every other failure path is unchanged. The
+    // response shape only gains optional fields.
+    res.status(error.status || 500).json({
       success: false,
       message: error.message || 'Failed to create order',
+      ...(error.prescriptionRequired && { prescriptionRequired: true }),
+      ...(error.prescriptionExhausted && { prescriptionExhausted: true }),
+      ...(error.medicineName && { medicineName: error.medicineName }),
     });
   }
 };

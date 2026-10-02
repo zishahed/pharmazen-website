@@ -1,4 +1,5 @@
 const prisma = require('../../utils/prisma');
+const { resolveSensitive, sensitiveWriteFields } = require('../../utils/sensitive');
 
 /**
  * Shared visibility guard for every catalogue read path.
@@ -17,10 +18,14 @@ const NOT_DELETED = { isDeleted: false };
  * @returns {Object} - { medicines, total, page, totalPages }
  */
 async function getMedicines(params) {
-  const { page = 1, limit = 20, genericName, company, categoryId, minPrice, maxPrice, search, requiresPrescription } = params;
+  const { page = 1, limit = 20, genericName, company, categoryId, minPrice, maxPrice, search, requiresPrescription, isSensitive } = params;
+
+  // Phase 7 step 1: resolve which column the caller is asking about up front,
+  // so the `hasFilters` check and the actual filter cannot disagree.
+  const sensitiveFilter = resolveSensitive({ requiresPrescription, isSensitive });
 
   // Check if any filters are applied
-  const hasFilters = !!(genericName || company || categoryId || minPrice || maxPrice || search || requiresPrescription !== undefined);
+  const hasFilters = !!(genericName || company || categoryId || minPrice || maxPrice || search || sensitiveFilter !== undefined);
 
   // Build where clause
   const where = { ...NOT_DELETED };
@@ -51,11 +56,13 @@ async function getMedicines(params) {
     where.categoryId = categoryId;
   }
 
-  // Filter by prescription requirement
-  if (requiresPrescription === 'true') {
-    where.requiresPrescription = true;
-  } else if (requiresPrescription === 'false') {
-    where.requiresPrescription = false;
+  // Filter by prescription requirement.
+  // Phase 7 step 1: filters on the authoritative `isSensitive` column.
+  // `sensitiveFilter` was resolved at the top of this function from either the
+  // legacy `requiresPrescription` query param (still sent by AdminDashboard) or
+  // `isSensitive`, so no caller can filter the two columns inconsistently.
+  if (sensitiveFilter !== undefined) {
+    where.isSensitive = sensitiveFilter;
   }
 
   // Filter by price range
@@ -174,7 +181,9 @@ async function getFilterOptions() {
 async function getRestrictedMedicines(search) {
   try {
     const where = {
-      requiresPrescription: true,
+      // Phase 7 step 1: the authoritative column, so this list and the order
+      // gate can never disagree about which medicines are restricted.
+      isSensitive: true,
       ...NOT_DELETED,
     };
 
@@ -226,7 +235,9 @@ async function createMedicine(data) {
         price: parseFloat(data.price),
         stockQuantity: parseInt(data.stockQuantity),
         expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
-        requiresPrescription: data.requiresPrescription || false,
+        // Phase 7 step 1: writes both columns. Accepts the legacy
+        // `requiresPrescription` the React admin form still posts.
+        ...sensitiveWriteFields(data),
       },
       include: { category: true },
     });
@@ -248,7 +259,9 @@ async function updateMedicine(id, data) {
         ...(data.price !== undefined && { price: parseFloat(data.price) }),
         ...(data.stockQuantity !== undefined && { stockQuantity: parseInt(data.stockQuantity) }),
         ...(data.expiryDate !== undefined && { expiryDate: data.expiryDate ? new Date(data.expiryDate) : null }),
-        ...(data.requiresPrescription !== undefined && { requiresPrescription: data.requiresPrescription }),
+        // Phase 7 step 1: spreads to `{}` when neither name is supplied, so a
+        // partial update that omits the field leaves both columns untouched.
+        ...sensitiveWriteFields(data),
       },
       include: { category: true },
     });

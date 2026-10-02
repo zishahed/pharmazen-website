@@ -432,6 +432,33 @@
   margin-top: 8px;
 }
 
+.limitInput {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--gray-border);
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  font-family: inherit;
+  transition: var(--transition);
+  background: white;
+  margin-bottom: 8px;
+}
+
+.limitInput:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 74, 173, 0.1);
+}
+
+.limitHint {
+  font-size: 12px;
+  /* --gray-medium, not --gray-text: that variable is referenced elsewhere in
+     this file but is never defined in index.css, so it resolves to nothing. */
+  color: var(--gray-medium);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
 .reviewNoteInput {
   width: 100%;
   padding: 14px 16px;

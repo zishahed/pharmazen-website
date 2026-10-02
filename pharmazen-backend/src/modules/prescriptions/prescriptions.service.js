@@ -1,4 +1,26 @@
 const prisma = require('../../utils/prisma');
+const { remainingUnits } = require('../../utils/prescriptionLimits');
+
+/**
+ * Shape a prescription for API responses.
+ *
+ * Phase 7b adds the limit triple (`maxQuantity` / `consumedQuantity` /
+ * `remainingQuantity`) so a pharmacist can see how much of an approval is
+ * already spent. `remainingQuantity` is derived rather than stored, and is
+ * clamped at 0 by `remainingUnits` because historical rows can carry
+ * consumed > max (the backfill records real over-use instead of hiding it).
+ *
+ * Additive only: every field a previous caller read is still returned.
+ *
+ * @param {Object} prescription - a Prisma prescription row
+ * @returns {Object}
+ */
+function toPrescriptionDto(prescription) {
+  return {
+    ...prescription,
+    remainingQuantity: remainingUnits(prescription),
+  };
+}
 
 /**
  * Create a new prescription upload
@@ -36,7 +58,7 @@ async function createPrescription(data) {
       },
     });
 
-    return prescription;
+    return toPrescriptionDto(prescription);
   } catch (error) {
     console.error('Error creating prescription:', error);
     throw new Error('Failed to create prescription');
@@ -67,7 +89,7 @@ async function getUserPrescriptions(userId) {
       },
     });
 
-    return prescriptions;
+    return prescriptions.map(toPrescriptionDto);
   } catch (error) {
     console.error('Error fetching user prescriptions:', error);
     throw new Error('Failed to fetch prescriptions');
@@ -101,7 +123,7 @@ async function getPendingPrescriptions() {
       },
     });
 
-    return prescriptions;
+    return prescriptions.map(toPrescriptionDto);
   } catch (error) {
     console.error('Error fetching pending prescriptions:', error);
     throw new Error('Failed to fetch pending prescriptions');
@@ -139,7 +161,7 @@ async function getPrescriptionById(id) {
       return null;
     }
 
-    return prescription;
+    return toPrescriptionDto(prescription);
   } catch (error) {
     console.error('Error fetching prescription:', error);
     throw new Error('Failed to fetch prescription');
@@ -152,9 +174,12 @@ async function getPrescriptionById(id) {
  * @param {String} reviewerId - Pharmacist/Admin ID
  * @param {String} status - 'approved' or 'rejected'
  * @param {String} reviewNote - Optional note from reviewer
+ * @param {Number} [maxQuantity] - Phase 7b: units the pharmacist authorises.
+ *   Omitted means DEFAULT_AUTHORIZED_QUANTITY. Validated by
+ *   `parseAuthorizedQuantity` in the controller.
  * @returns {Object} - Updated prescription
  */
-async function reviewPrescription(id, reviewerId, status, reviewNote) {
+async function reviewPrescription(id, reviewerId, status, reviewNote, maxQuantity) {
   try {
     const prescription = await prisma.prescription.update({
       where: { id },
@@ -162,6 +187,10 @@ async function reviewPrescription(id, reviewerId, status, reviewNote) {
         status,
         reviewedBy: reviewerId,
         reviewNote: reviewNote || null,
+        // Phase 7b. Only written when the reviewer stated a figure, so a review
+        // that predates this field (or a client that omits it) leaves an existing
+        // limit alone instead of resetting a patient's budget.
+        ...(maxQuantity !== undefined && { maxQuantity }),
       },
       include: {
         user: {
@@ -181,7 +210,7 @@ async function reviewPrescription(id, reviewerId, status, reviewNote) {
       },
     });
 
-    return prescription;
+    return toPrescriptionDto(prescription);
   } catch (error) {
     console.error('Error reviewing prescription:', error);
     throw new Error('Failed to review prescription');

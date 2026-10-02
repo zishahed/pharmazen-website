@@ -15,7 +15,10 @@ async function getMedicines(req, res) {
       minPrice: req.query.minPrice,
       maxPrice: req.query.maxPrice,
       search: req.query.search,
+      // Phase 7 step 1: both names accepted. The React filter still sends the
+      // legacy one; `resolveSensitive` prefers `isSensitive` when both arrive.
       requiresPrescription: req.query.requiresPrescription,
+      isSensitive: req.query.isSensitive,
     };
 
     const result = await medicinesService.getMedicines(params);

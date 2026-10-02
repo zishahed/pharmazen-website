@@ -1,4 +1,5 @@
 const prescriptionsService = require('./prescriptions.service');
+const { parseAuthorizedQuantity } = require('../../utils/prescriptionLimits');
 const { v2: cloudinary } = require('cloudinary');
 const streamifier = require('streamifier');
 
@@ -163,6 +164,19 @@ async function reviewPrescription(req, res) {
       });
     }
 
+    // Phase 7b: the pharmacist states how many units this approval authorises.
+    // parseAuthorizedQuantity rejects a non-integer, a zero, a negative and
+    // anything above MAX_AUTHORIZED_QUANTITY with a 400, so a typo cannot
+    // silently authorise an absurd allowance. It throws .status = 400, which
+    // the catch below honours rather than converting to a 500.
+    let maxQuantity;
+    try {
+      const hasLimit = Object.prototype.hasOwnProperty.call(req.body, 'maxQuantity');
+      maxQuantity = hasLimit ? parseAuthorizedQuantity(req.body.maxQuantity) : undefined;
+    } catch (error) {
+      return res.status(400).json({ success: false, error: error.message });
+    }
+
     const prescription = await prescriptionsService.getPrescriptionById(id);
     if (!prescription) {
       return res.status(404).json({
@@ -178,7 +192,7 @@ async function reviewPrescription(req, res) {
       });
     }
 
-    const updated = await prescriptionsService.reviewPrescription(id, reviewerId, status, reviewNote);
+    const updated = await prescriptionsService.reviewPrescription(id, reviewerId, status, reviewNote, maxQuantity);
 
     res.json({
       success: true,

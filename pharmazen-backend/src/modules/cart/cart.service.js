@@ -1,4 +1,5 @@
 const prisma = require('../../utils/prisma');
+const { toSensitiveDto } = require('../../utils/sensitive');
 
 const MAX_QUANTITY = 5;
 
@@ -24,6 +25,10 @@ async function getCart(userId) {
               name: true,
               price: true,
               stockQuantity: true,
+              // Phase 7 step 1: `isSensitive` is the authoritative column; the
+              // legacy mirror is still selected so `toSensitiveDto` can keep
+              // answering both names until the column is dropped.
+              isSensitive: true,
               requiresPrescription: true,
               categoryId: true,
               category: {
@@ -47,7 +52,10 @@ async function getCart(userId) {
       genericName: item.medicine.category.name,
       price: Number(item.medicine.price),
       stockQuantity: item.medicine.stockQuantity,
-      requiresPrescription: item.medicine.requiresPrescription,
+      // Phase 7 step 1: served under both names from the authoritative column.
+      // The React checkout still reads `requiresPrescription` (CheckoutPage),
+      // so removing it here would silently drop the restricted warning.
+      ...toSensitiveDto(item.medicine.isSensitive),
       quantity: item.quantity
     }))
   };
