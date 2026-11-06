@@ -15,6 +15,11 @@ const createPaymentSession = async (userId, orderId, amount) => {
     throw new Error('Order already paid');
   }
 
+  const requestedAmount = Number(amount);
+  if (!Number.isFinite(requestedAmount) || requestedAmount !== Number(order.totalAmount)) {
+    throw new Error('Payment amount does not match the order total');
+  }
+
   if (order.status === 'awaiting_prescription') {
     throw new Error('Cannot pay for this order. Prescription approval required.');
   }
@@ -59,7 +64,10 @@ const executePayment = async (userId, paymentId) => {
     throw new Error('Payment not found');
   }
 
-  if (payment.order.userId !== userId) {
+  // The public bKash callback has no application bearer token. Ownership is
+  // established by the payment ID stored for this order, while the
+  // authenticated endpoint still enforces the caller's user ID.
+  if (userId !== null && payment.order.userId !== userId) {
     throw new Error('Unauthorized');
   }
 
@@ -112,6 +120,14 @@ const executePayment = async (userId, paymentId) => {
           }
         }
       });
+    }
+
+    const cart = await prisma.cart.findUnique({
+      where: { userId: payment.order.userId },
+      select: { id: true },
+    });
+    if (cart) {
+      await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
     }
 
     return {
