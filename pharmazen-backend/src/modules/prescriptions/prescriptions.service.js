@@ -181,17 +181,28 @@ async function getPrescriptionById(id) {
  */
 async function reviewPrescription(id, reviewerId, status, reviewNote, maxQuantity) {
   try {
-    const prescription = await prisma.prescription.update({
-      where: { id },
+    // The pending test lives in the WHERE clause so two pharmacists opening the
+    // same request cannot both record a decision. The loser claims 0 rows and
+    // the controller answers 409 instead of overwriting the first reviewer.
+    const claimed = await prisma.prescription.updateMany({
+      where: { id, status: 'pending' },
       data: {
         status,
         reviewedBy: reviewerId,
         reviewNote: reviewNote || null,
-        // Phase 7b. Only written when the reviewer stated a figure, so a review
-        // that predates this field (or a client that omits it) leaves an existing
-        // limit alone instead of resetting a patient's budget.
-        ...(maxQuantity !== undefined && { maxQuantity }),
+        // Phase 7b. Only an approval states a dispensing limit; a rejection
+        // leaves the patient's existing budget untouched. Omitting the figure
+        // also leaves it alone rather than resetting it to the default.
+        ...(status === 'approved' && maxQuantity !== undefined && { maxQuantity }),
       },
+    });
+
+    if (claimed.count === 0) {
+      return null;
+    }
+
+    const prescription = await prisma.prescription.findUnique({
+      where: { id },
       include: {
         user: {
           select: {
@@ -199,6 +210,9 @@ async function reviewPrescription(id, reviewerId, status, reviewNote, maxQuantit
             name: true,
             email: true,
           },
+        },
+        reviewer: {
+          select: { name: true },
         },
         files: {
           select: {
@@ -210,7 +224,7 @@ async function reviewPrescription(id, reviewerId, status, reviewNote, maxQuantit
       },
     });
 
-    return toPrescriptionDto(prescription);
+    return prescription ? toPrescriptionDto(prescription) : null;
   } catch (error) {
     console.error('Error reviewing prescription:', error);
     throw new Error('Failed to review prescription');

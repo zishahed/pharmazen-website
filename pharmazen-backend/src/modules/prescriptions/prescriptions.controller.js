@@ -154,13 +154,26 @@ async function getPrescriptionById(req, res) {
 async function reviewPrescription(req, res) {
   try {
     const { id } = req.params;
-    const { status, reviewNote } = req.body;
+    const { status } = req.body;
+    const reviewNote = typeof req.body.reviewNote === 'string'
+      ? req.body.reviewNote.trim()
+      : '';
     const reviewerId = req.user.id;
 
     if (!status || !['approved', 'rejected'].includes(status)) {
       return res.status(400).json({
         success: false,
         error: 'Status must be either "approved" or "rejected".',
+      });
+    }
+
+    // The customer sees this note, so a rejection without a reason is not a
+    // complete decision. Enforced server-side as well as in the app so no client
+    // can leave a patient with an unexplained refusal.
+    if (status === 'rejected' && !reviewNote) {
+      return res.status(400).json({
+        success: false,
+        error: 'A reason is required when rejecting a prescription.',
       });
     }
 
@@ -192,7 +205,22 @@ async function reviewPrescription(req, res) {
       });
     }
 
-    const updated = await prescriptionsService.reviewPrescription(id, reviewerId, status, reviewNote, maxQuantity);
+    const updated = await prescriptionsService.reviewPrescription(
+      id,
+      reviewerId,
+      status,
+      reviewNote,
+      maxQuantity
+    );
+
+    // The early read said pending, but another pharmacist may have decided in
+    // the interval. Only one conditional UPDATE can claim the row.
+    if (!updated) {
+      return res.status(409).json({
+        success: false,
+        error: 'Prescription has already been reviewed.',
+      });
+    }
 
     res.json({
       success: true,

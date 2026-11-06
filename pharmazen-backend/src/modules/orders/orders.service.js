@@ -126,7 +126,7 @@ const createOrderFromCart = async (userId) => {
       return sum + (Number(item.medicine.price) * item.quantity);
     }, 0);
 
-    return tx.order.create({
+    const createdOrder = await tx.order.create({
       data: {
         userId,
         totalAmount,
@@ -165,6 +165,15 @@ const createOrderFromCart = async (userId) => {
         },
       },
     });
+
+    // The order now owns these quantities. Clear the cart in the same
+    // transaction so a successful purchase cannot leave duplicate lines
+    // available for a second purchase.
+    await tx.cartItem.deleteMany({
+      where: { cartId: cart.id },
+    });
+
+    return createdOrder;
   });
 
   return {
