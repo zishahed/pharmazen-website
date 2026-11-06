@@ -222,6 +222,66 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
+const updateCurrentUser = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name must not be empty',
+      });
+    }
+
+    if (email !== undefined &&
+        (typeof email !== 'string' ||
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format',
+      });
+    }
+
+    const user = await authService.updateCurrentUser(req.user.id, {
+      ...(name !== undefined ? { name: name.trim() } : {}),
+      ...(email !== undefined ? { email: email.trim().toLowerCase() } : {}),
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: { user },
+    });
+  } catch (error) {
+    console.error('Update current user error:', error);
+    const isConflict = error.code === 'P2002';
+    res.status(isConflict ? 409 : 400).json({
+      success: false,
+      message: isConflict
+        ? 'That email is already in use'
+        : (error.message || 'Profile update failed'),
+    });
+  }
+};
+
+const deleteCurrentUser = async (req, res) => {
+  try {
+    await authService.deactivateCurrentUser(req.user.id);
+    const cookieOptions = { ...cookieBase, path: '/' };
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
+    res.json({
+      success: true,
+      message: 'Profile deactivated successfully',
+    });
+  } catch (error) {
+    console.error('Delete current user error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Could not deactivate profile',
+    });
+  }
+};
+
 /**
  * Check if user is authenticated
  * GET /api/auth/check
@@ -315,6 +375,8 @@ module.exports = {
   refresh,
   logout,
   getCurrentUser,
+  updateCurrentUser,
+  deleteCurrentUser,
   registerStaff,
   checkAuth,
 };

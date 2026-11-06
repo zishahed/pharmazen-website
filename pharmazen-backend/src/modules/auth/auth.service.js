@@ -66,6 +66,10 @@ const login = async ({ email, password }) => {
     throw new Error('Invalid email or password');
   }
 
+  if (!user.isActive) {
+    throw new Error('This account has been deactivated');
+  }
+
   // Verify password
   const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 
@@ -135,6 +139,10 @@ const refreshAccessToken = async (refreshToken) => {
   if (!storedToken) {
     // Token not found or revoked - possible breach, revoke all user tokens
     throw new Error('Invalid refresh token');
+  }
+
+  if (!storedToken.user.isActive) {
+    throw new Error('This account has been deactivated');
   }
 
   // Generate new tokens
@@ -241,11 +249,49 @@ const registerStaff = async ({ name, email, password, role }) => {
       name: true,
       email: true,
       role: true,
+      isActive: true,
       createdAt: true,
     },
   });
 
   return user;
+};
+
+const updateCurrentUser = async (userId, { name, email }) => {
+  const data = {};
+  if (name !== undefined) data.name = name;
+  if (email !== undefined) data.email = email;
+
+  return prisma.user.update({
+    where: { id: userId },
+    data,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+};
+
+const deactivateCurrentUser = async (userId) => {
+  return prisma.$transaction(async (transaction) => {
+    const user = await transaction.user.update({
+      where: { id: userId },
+      data: { isActive: false },
+      select: { id: true },
+    });
+
+    await transaction.refreshToken.updateMany({
+      where: { userId },
+      data: { isRevoked: true },
+    });
+
+    return user;
+  });
 };
 
 const getUserById = async (userId) => {
@@ -276,4 +322,6 @@ module.exports = {
   revokeAllUserTokens,
   registerStaff,
   getUserById,
+  updateCurrentUser,
+  deactivateCurrentUser,
 };

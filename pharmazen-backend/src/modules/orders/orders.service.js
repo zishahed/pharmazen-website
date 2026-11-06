@@ -7,7 +7,22 @@ const {
 
 const MAX_QUANTITY = 5;
 
+const discountFor = (role, subtotal) => {
+  if (role !== 'pharmacist') return 0;
+  if (subtotal > 1000) return 0.1;
+  if (subtotal > 500) return 0.05;
+  return 0;
+};
+
+const money = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+
 const createOrderFromCart = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true, isActive: true },
+  });
+  if (!user || !user.isActive) throw new Error('User account is inactive');
+
   const cart = await prisma.cart.findUnique({
     where: { userId },
     include: {
@@ -35,6 +50,20 @@ const createOrderFromCart = async (userId) => {
   // checkout reads that name today.
   const hasPrescriptionRequired = cart.items.some(
     item => item.medicine.isSensitive
+  );
+  const subtotal = cart.items.reduce(
+    (sum, item) => sum + Number(item.medicine.price) * item.quantity,
+    0
+  );
+  const discountRate = discountFor(user.role, subtotal);
+  const discountedLinePrices = cart.items.map(item => money(
+    Number(item.medicine.price) * (1 - discountRate)
+  ));
+  const totalAmount = money(
+    cart.items.reduce(
+      (sum, item, index) => sum + discountedLinePrices[index] * item.quantity,
+      0
+    )
   );
 
   let orderStatus = 'pending';
@@ -122,10 +151,6 @@ const createOrderFromCart = async (userId) => {
       }
     }
 
-    const totalAmount = cart.items.reduce((sum, item) => {
-      return sum + (Number(item.medicine.price) * item.quantity);
-    }, 0);
-
     const createdOrder = await tx.order.create({
       data: {
         userId,
@@ -134,10 +159,10 @@ const createOrderFromCart = async (userId) => {
         paymentStatus: 'unpaid',
         prescriptionId,
         items: {
-          create: cart.items.map(item => ({
+          create: cart.items.map((item, index) => ({
             medicineId: item.medicine.id,
             quantity: item.quantity,
-            priceAtPurchase: item.medicine.price,
+            priceAtPurchase: discountedLinePrices[index],
             // Phase 7b: attribution, so cancelling returns units to the right
             // prescription and the audit trail records every authorising
             // prescription rather than just the last one.
@@ -172,6 +197,8 @@ const createOrderFromCart = async (userId) => {
   return {
     id: order.id,
     totalAmount: Number(order.totalAmount),
+    subtotal: money(subtotal),
+    discountRate,
     status: order.status,
     paymentStatus: order.paymentStatus,
     // Phase 7 step 1: emitted under both names so the React checkout keeps working

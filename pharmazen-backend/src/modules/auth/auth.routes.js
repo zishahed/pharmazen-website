@@ -13,6 +13,8 @@ router.get('/check', authController.checkAuth);
 // Protected routes
 router.post('/logout', authenticate, authController.logout);
 router.get('/me', authenticate, authController.getCurrentUser);
+router.patch('/me', authenticate, authController.updateCurrentUser);
+router.delete('/me', authenticate, authController.deleteCurrentUser);
 
 // Admin-only routes
 router.post('/admin/register-staff', authenticate, authorize('admin'), authController.registerStaff);
