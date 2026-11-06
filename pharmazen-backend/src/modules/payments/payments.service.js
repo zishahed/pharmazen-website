@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const bkashService = require('../../services/bkash/bkash.service');
 const prisma = require('../../utils/prisma');
 
@@ -31,15 +32,44 @@ const createPaymentSession = async (userId, orderId, amount) => {
     merchantInvoiceNumber
   );
 
-  await prisma.payment.create({
-    data: {
-      orderId: order.id,
-      bkashPaymentId: bkashResponse.payment_id,
-      transactionId: '',
-      amount: amount,
-      status: 'initiated',
-    },
+  if (!bkashResponse.payment_id) {
+    throw new Error('bKash did not return a payment ID');
+  }
+
+  // transaction_id is unique in PostgreSQL. It is not known until bKash
+  // executes the payment, so use a unique internal reference instead of the
+  // empty string placeholder. The real transaction ID replaces it on success.
+  const pendingTransactionId = `pending_${crypto.randomUUID()}`;
+  const existingPayment = await prisma.payment.findUnique({
+    where: { orderId: order.id },
+    select: { id: true, status: true },
   });
+
+  if (existingPayment?.status === 'completed') {
+    throw new Error('Order already paid');
+  }
+
+  if (existingPayment) {
+    await prisma.payment.update({
+      where: { id: existingPayment.id },
+      data: {
+        bkashPaymentId: bkashResponse.payment_id,
+        transactionId: pendingTransactionId,
+        amount: requestedAmount,
+        status: 'initiated',
+      },
+    });
+  } else {
+    await prisma.payment.create({
+      data: {
+        orderId: order.id,
+        bkashPaymentId: bkashResponse.payment_id,
+        transactionId: pendingTransactionId,
+        amount: requestedAmount,
+        status: 'initiated',
+      },
+    });
+  }
 
   return {
     bkashUrl: bkashResponse.gatewayPageURL || bkashResponse.payment_id,
