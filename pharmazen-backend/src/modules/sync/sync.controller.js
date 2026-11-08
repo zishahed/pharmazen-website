@@ -21,28 +21,6 @@ async function getDelta(req, res) {
       console.warn('Discarded an unparseable sync cursor; restarting the run.');
     }
 
-    async function getRecent(req, res) {
-      try {
-        const days = Number(req.query.days);
-        const offset = Number(req.query.cursor || 0);
-        if (![7, 30, 180].includes(days) || !Number.isInteger(offset) || offset < 0) {
-          return res.status(400).json({
-            success: false,
-            error: 'Invalid recent sync window.',
-          });
-        }
-
-        res.set('Cache-Control', 'no-store');
-        res.json(await syncService.fetchRecent({ days, offset }));
-      } catch (error) {
-        console.error('Error in getRecent:', error);
-        res.status(500).json({
-          success: false,
-          error: 'Failed to fetch recent medicines.',
-        });
-      }
-    }
-
     const page = await syncService.fetchDelta({ since, cursor });
 
     res.set('Cache-Control', 'no-store');
@@ -50,6 +28,28 @@ async function getDelta(req, res) {
   } catch (error) {
     console.error('Error in getDelta controller:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch sync delta.' });
+  }
+}
+
+async function getRecent(req, res) {
+  try {
+    const days = Number(req.query.days);
+    const offset = Number(req.query.cursor || 0);
+    if (![7, 30, 180].includes(days) || !Number.isInteger(offset) || offset < 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid recent sync window.',
+      });
+    }
+
+    res.set('Cache-Control', 'no-store');
+    res.json(await syncService.fetchRecent({ days, offset }));
+  } catch (error) {
+    console.error('Error in getRecent:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch recent medicines.',
+    });
   }
 }
 

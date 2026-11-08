@@ -190,6 +190,25 @@ function window(state) {
   };
 }
 
+async function fetchRecent({ days, offset = 0 }) {
+  const cutoff = new Date(Date.now() - days * 86_400_000);
+  const rows = await prisma.medicine.findMany({
+    where: { createdAt: { gte: cutoff } },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    skip: offset,
+    take: PAGE_SIZE,
+    select: MEDICINE_SELECT,
+  });
+
+  return {
+    nextCursor: rows.length === PAGE_SIZE ? String(offset + rows.length) : null,
+    serverTime: new Date().toISOString(),
+    isFullResync: false,
+    generics: [],
+    medicines: rows.map(toMedicineDto),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Delta
 // ---------------------------------------------------------------------------
@@ -241,29 +260,6 @@ async function fetchDelta({ since = null, cursor = null } = {}) {
         id: last.id,
       });
     }
-  }
-
-  /**
-   * Bounded first-install pull. It filters by createdAt rather than updatedAt,
-   * so a new device never downloads the entire catalogue.
-   */
-  async function fetchRecent({ days, offset = 0 }) {
-    const cutoff = new Date(Date.now() - days * 86_400_000);
-    const rows = await prisma.medicine.findMany({
-      where: { createdAt: { gte: cutoff } },
-      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-      skip: offset,
-      take: PAGE_SIZE,
-      select: MEDICINE_SELECT,
-    });
-
-    return {
-      nextCursor: rows.length === PAGE_SIZE ? String(offset + rows.length) : null,
-      serverTime: new Date().toISOString(),
-      isFullResync: false,
-      generics: [],
-      medicines: rows.map(toMedicineDto),
-    };
   }
 
   const isGenericsPage = state.stage === STAGE_GENERICS;
