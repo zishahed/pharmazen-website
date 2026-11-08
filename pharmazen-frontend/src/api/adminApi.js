@@ -138,6 +138,19 @@ export const updateUserRole = async (id, role) => {
   }
 };
 
+export const updateUserStatus = async (id, isActive) => {
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}/admin/users/${id}/status`,
+      { isActive },
+      { withCredentials: true },
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to update user status' };
+  }
+};
+
 export const getSalesAnalytics = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/admin/sales`, {

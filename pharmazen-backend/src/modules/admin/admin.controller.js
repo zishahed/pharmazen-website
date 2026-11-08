@@ -4,13 +4,15 @@ const genericsService = require('../generics/generics.service');
 
 async function getDashboardStats(req, res) {
   try {
-    const [totalMedicines, totalOrders, totalUsers, pendingPrescriptions, lowStockCount] = await Promise.all([
+    const [totalMedicines, totalOrders, totalUsers, totalCustomers, totalPharmacists, pendingPrescriptions, lowStockCount] = await Promise.all([
       // Catalogue counts exclude soft-deleted rows. The sales analytics further
       // down deliberately does NOT filter: order history must survive a
       // soft delete, and OrderItem.priceAtPurchase is the record of truth.
       prisma.medicine.count({ where: { isDeleted: false } }),
       prisma.order.count(),
       prisma.user.count(),
+      prisma.user.count({ where: { role: 'customer', isActive: true } }),
+      prisma.user.count({ where: { role: 'pharmacist', isActive: true } }),
       prisma.prescription.count({ where: { status: 'pending' } }),
       prisma.medicine.count({ where: { isDeleted: false, stockQuantity: { lte: 10 } } }),
     ]);
@@ -26,6 +28,8 @@ async function getDashboardStats(req, res) {
         totalMedicines,
         totalOrders,
         totalUsers,
+        totalCustomers,
+        totalPharmacists,
         pendingPrescriptions,
         lowStockCount,
         totalRevenue: revenueResult._sum.amount || 0,
@@ -113,6 +117,7 @@ async function getAllUsers(req, res) {
         name: true,
         email: true,
         role: true,
+        isActive: true,
         createdAt: true,
         _count: { select: { orders: true } },
       },
@@ -124,6 +129,7 @@ async function getAllUsers(req, res) {
       name: u.name,
       email: u.email,
       role: u.role,
+      isActive: u.isActive,
       createdAt: u.createdAt,
       orderCount: u._count.orders,
     }));
@@ -188,6 +194,7 @@ async function updateUserRole(req, res) {
     if (!validRoles.includes(role)) {
       return res.status(400).json({ success: false, error: 'Invalid role' });
     }
+
     if (id === req.user.id) {
       return res.status(400).json({ success: false, error: 'Cannot change your own role' });
     }
@@ -217,6 +224,68 @@ async function updateUserRole(req, res) {
   } catch (error) {
     console.error('Error in updateUserRole:', error);
     res.status(500).json({ success: false, error: 'Failed to update user role' });
+  }
+}
+
+async function updateUserStatus(req, res) {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'isActive must be a boolean' });
+    }
+    if (id === req.user.id && !isActive) {
+      return res.status(400).json({ success: false, error: 'Cannot deactivate your own account' });
+    }
+
+    const target = await prisma.user.findUnique({
+      where: { id },
+      select: { role: true },
+    });
+    if (!target) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    if (target.role === 'admin') {
+      return res.status(400).json({ success: false, error: 'Admin accounts cannot be managed here' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id },
+      data: { isActive },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        _count: { select: { orders: true } },
+      },
+    });
+
+    if (!isActive) {
+      await prisma.refreshToken.updateMany({
+        where: { userId: id, isRevoked: false },
+        data: { isRevoked: true },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        orderCount: user._count.orders,
+      },
+    });
+  } catch (error) {
+    console.error('Error in updateUserStatus:', error);
+    res.status(500).json({ success: false, error: 'Failed to update user status' });
   }
 }
 
@@ -356,4 +425,14 @@ async function restoreGeneric(req, res) {
   }
 }
 
-module.exports = { getDashboardStats, getAllOrders, getAllUsers, getSalesAnalytics, updateOrderStatus, updateUserRole, restoreMedicine, restoreGeneric };
+module.exports = {
+  getDashboardStats,
+  getAllOrders,
+  getAllUsers,
+  getSalesAnalytics,
+  updateOrderStatus,
+  updateUserRole,
+  updateUserStatus,
+  restoreMedicine,
+  restoreGeneric,
+};
