@@ -5,6 +5,7 @@ const { authenticate, authorize } = require('../../middleware/auth');
 
 router.get('/stats', authenticate, authorize('admin'), adminController.getDashboardStats);
 router.get('/orders', authenticate, authorize('admin'), adminController.getAllOrders);
+router.get('/medicine-options', authenticate, authorize('admin'), adminController.getMedicineOptions);
 router.get('/users', authenticate, authorize('admin'), adminController.getAllUsers);
 router.get('/sales', authenticate, authorize('admin'), adminController.getSalesAnalytics);
 router.patch('/orders/:id/status', authenticate, authorize('admin'), adminController.updateOrderStatus);

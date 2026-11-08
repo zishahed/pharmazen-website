@@ -34,6 +34,7 @@ const limiter = rateLimit({
 
 // GET /api/sync - One page of the ?since= delta
 router.get('/', limiter, syncController.getDelta);
+router.get('/recent', limiter, syncController.getRecent);
 
 // GET /api/sync/manifest - [[remoteId, contentHash], ...] for repair only
 router.get('/manifest', limiter, syncController.getManifest);

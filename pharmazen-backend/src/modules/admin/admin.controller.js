@@ -97,6 +97,45 @@ async function getAllOrders(req, res) {
   }
 }
 
+async function getMedicineOptions(req, res) {
+  try {
+    const [categories, genericRows, slugRows, manufacturerRows] = await Promise.all([
+      prisma.category.findMany({ orderBy: { name: 'asc' } }),
+      prisma.generic.findMany({
+        select: { genericId: true, genericName: true },
+        orderBy: { genericName: 'asc' },
+      }),
+      prisma.medicine.findMany({
+        where: { isDeleted: false, slug: { not: null } },
+        distinct: ['slug'],
+        select: { slug: true },
+        orderBy: { slug: 'asc' },
+      }),
+      prisma.medicine.findMany({
+        where: { isDeleted: false, manufacturer: { not: null } },
+        distinct: ['manufacturer'],
+        select: { manufacturer: true },
+        orderBy: { manufacturer: 'asc' },
+      }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        categories,
+        generics: genericRows,
+        slugs: slugRows.map(({ slug }) => slug).filter(Boolean),
+        manufacturers: manufacturerRows
+          .map(({ manufacturer }) => manufacturer)
+          .filter(Boolean),
+      },
+    });
+  } catch (error) {
+    console.error('Error in getMedicineOptions:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch medicine options' });
+  }
+}
+
 async function getAllUsers(req, res) {
   try {
     const { search, role } = req.query;
@@ -428,6 +467,7 @@ async function restoreGeneric(req, res) {
 module.exports = {
   getDashboardStats,
   getAllOrders,
+  getMedicineOptions,
   getAllUsers,
   getSalesAnalytics,
   updateOrderStatus,

@@ -235,6 +235,14 @@ async function createMedicine(data) {
         price: parseFloat(data.price),
         stockQuantity: parseInt(data.stockQuantity),
         expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
+        genericId: data.genericId === '' || data.genericId == null ? null : parseInt(data.genericId),
+        slug: data.slug || null,
+        type: data.type || null,
+        dosageForm: data.dosageForm || null,
+        strength: data.strength || null,
+        manufacturer: data.manufacturer || null,
+        packageContainer: data.packageContainer || null,
+        packageSize: data.packageSize || null,
         // Phase 7 step 1: writes both columns. Accepts the legacy
         // `requiresPrescription` the React admin form still posts.
         ...sensitiveWriteFields(data),
@@ -259,6 +267,16 @@ async function updateMedicine(id, data) {
         ...(data.price !== undefined && { price: parseFloat(data.price) }),
         ...(data.stockQuantity !== undefined && { stockQuantity: parseInt(data.stockQuantity) }),
         ...(data.expiryDate !== undefined && { expiryDate: data.expiryDate ? new Date(data.expiryDate) : null }),
+        ...(data.genericId !== undefined && {
+          genericId: data.genericId === '' || data.genericId == null ? null : parseInt(data.genericId),
+        }),
+        ...(data.slug !== undefined && { slug: data.slug || null }),
+        ...(data.type !== undefined && { type: data.type || null }),
+        ...(data.dosageForm !== undefined && { dosageForm: data.dosageForm || null }),
+        ...(data.strength !== undefined && { strength: data.strength || null }),
+        ...(data.manufacturer !== undefined && { manufacturer: data.manufacturer || null }),
+        ...(data.packageContainer !== undefined && { packageContainer: data.packageContainer || null }),
+        ...(data.packageSize !== undefined && { packageSize: data.packageSize || null }),
         // Phase 7 step 1: spreads to `{}` when neither name is supplied, so a
         // partial update that omits the field leaves both columns untouched.
         ...sensitiveWriteFields(data),
